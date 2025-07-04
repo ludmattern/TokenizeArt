@@ -4,7 +4,7 @@
 		<meta charset="UTF-8" />
 		<meta name="viewport" content="width=device-width, initial-scale=1.0" />
 		<title>MATTERN42 NFT Collection</title>
-		<script src="https://cdn.ethers.io/lib/ethers-5.7.2.umd.min.js"></script>
+		<script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
 		<style>
 			* {
 				margin: 0;
@@ -241,9 +241,9 @@
 			// Configuration
 			const CONFIG = {
 				SEPOLIA_CHAIN_ID: 11155111,
-				CONTRACT_ADDRESS: '', // À remplir après déploiement
-				RPC_URL: 'https://sepolia.infura.io/v3/YOUR_INFURA_KEY',
+				CONTRACT_ADDRESS: '', // Will be loaded from environment
 				ETHERSCAN_URL: 'https://sepolia.etherscan.io',
+				CURRENT_NETWORK: 'sepolia',
 			};
 
 			// Contract ABI (simplifié pour le mint)
@@ -261,6 +261,20 @@
 
 			let provider, signer, contract, userAddress;
 
+			// Load contract address from local environment
+			async function loadContractAddress() {
+				try {
+					const response = await fetch('/contract-address.json');
+					if (response.ok) {
+						const data = await response.json();
+						CONFIG.CONTRACT_ADDRESS = data.address;
+						console.log('Contract address loaded:', CONFIG.CONTRACT_ADDRESS);
+					}
+				} catch (error) {
+					console.log('No contract address file found, will need manual input');
+				}
+			}
+
 			// Connect to wallet
 			async function connectWallet() {
 				try {
@@ -272,13 +286,14 @@
 					showStatus('Connecting wallet...', 'info');
 
 					await window.ethereum.request({ method: 'eth_requestAccounts' });
-					provider = new ethers.providers.Web3Provider(window.ethereum);
-					signer = provider.getSigner();
+					provider = new ethers.BrowserProvider(window.ethereum);
+					signer = await provider.getSigner();
 					userAddress = await signer.getAddress();
 
 					// Check network
 					const network = await provider.getNetwork();
-					if (network.chainId !== CONFIG.SEPOLIA_CHAIN_ID) {
+
+					if (Number(network.chainId) !== CONFIG.SEPOLIA_CHAIN_ID) {
 						await switchToSepolia();
 						return;
 					}
@@ -341,7 +356,7 @@
 			async function updateBalance() {
 				try {
 					const balance = await provider.getBalance(userAddress);
-					document.getElementById('ethBalance').textContent = parseFloat(ethers.utils.formatEther(balance)).toFixed(4);
+					document.getElementById('ethBalance').textContent = parseFloat(ethers.formatEther(balance)).toFixed(4);
 				} catch (error) {
 					console.error('Balance error:', error);
 				}
@@ -384,7 +399,7 @@
 					return;
 				}
 
-				if (!ethers.utils.isAddress(recipient)) {
+				if (!ethers.isAddress(recipient)) {
 					showStatus('Invalid recipient address', 'error');
 					return;
 				}
@@ -403,10 +418,11 @@
 
 					showStatus(`✅ NFT minted successfully! Transaction: ${tx.hash}`, 'success');
 
-					// Add Etherscan link
-					const etherscanLink = `${CONFIG.ETHERSCAN_URL}/tx/${tx.hash}`;
+					// Add explorer link
+					const explorerUrl = `${CONFIG.ETHERSCAN_URL}/tx/${tx.hash}`;
+
 					setTimeout(() => {
-						showStatus(`✅ NFT minted! View on <a href="${etherscanLink}" target="_blank">Etherscan</a>`, 'success');
+						showStatus(`✅ NFT minted! View on <a href="${explorerUrl}" target="_blank">Etherscan</a>`, 'success');
 					}, 2000);
 
 					await refreshStats();
@@ -435,6 +451,7 @@
 
 			// Auto-connect if previously connected
 			window.addEventListener('load', async () => {
+				await loadContractAddress();
 				if (window.ethereum && window.ethereum.selectedAddress) {
 					await connectWallet();
 				}

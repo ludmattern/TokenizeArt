@@ -1,11 +1,10 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.19;
+pragma solidity ^0.8.20;
 
 import "@openzeppelin/contracts/token/ERC721/ERC721.sol";
 import "@openzeppelin/contracts/token/ERC721/extensions/ERC721URIStorage.sol";
 import "@openzeppelin/contracts/access/Ownable.sol";
-import "@openzeppelin/contracts/security/Pausable.sol";
-import "@openzeppelin/contracts/utils/Counters.sol";
+import "@openzeppelin/contracts/utils/Pausable.sol";
 import "@openzeppelin/contracts/utils/Strings.sol";
 import "@openzeppelin/contracts/utils/Base64.sol";
 
@@ -16,9 +15,8 @@ import "@openzeppelin/contracts/utils/Base64.sol";
  * @author lmattern (MATTERN42 Team)
  */
 contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
-    using Counters for Counters.Counter;
-
-    Counters.Counter private _tokenIdCounter;
+    // Token ID counter (replaces Counters library which was removed in v5.0)
+    uint256 private _nextTokenId = 1; // Start at 1
 
     // Maximum supply of NFTs
     uint256 public constant MAX_SUPPLY = 4242; // 42*100 + 42
@@ -63,10 +61,9 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         string memory name,
         string memory symbol,
         string memory baseTokenURI
-    ) ERC721(name, symbol) {
+    ) ERC721(name, symbol) Ownable(msg.sender) {
         _baseTokenURI = baseTokenURI;
-        // Start token IDs at 1
-        _tokenIdCounter.increment();
+        // _nextTokenId is already initialized to 1
 
         // Set default BADGER42 image data (will be updated with actual data)
         _defaultImageData = "data:image/svg+xml;base64,"; // Placeholder
@@ -89,7 +86,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         string memory imageData,
         string memory attributes
     ) external onlyOwner {
-        uint256 tokenId = _tokenIdCounter.current();
+        uint256 tokenId = _nextTokenId;
         require(tokenId <= MAX_SUPPLY, "Maximum supply exceeded");
 
         _safeMint(to, tokenId);
@@ -109,7 +106,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         });
 
         _tokenArtists[tokenId] = artist;
-        _tokenIdCounter.increment();
+        _nextTokenId++;
 
         // Generate on-chain URI
         string memory onChainURI = _generateOnChainURI(tokenId);
@@ -127,7 +124,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         string memory metadataURI,
         string memory artist
     ) external onlyOwner {
-        uint256 tokenId = _tokenIdCounter.current();
+        uint256 tokenId = _nextTokenId;
         require(tokenId <= MAX_SUPPLY, "Maximum supply exceeded");
 
         _safeMint(to, tokenId);
@@ -137,7 +134,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         // Mark as external URI (not on-chain)
         _onChainMetadata[tokenId].isOnChain = false;
 
-        _tokenIdCounter.increment();
+        _nextTokenId++;
 
         emit NFTMinted(to, tokenId, metadataURI, artist);
     }
@@ -169,7 +166,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
             "Invalid attributes length"
         );
         require(
-            _tokenIdCounter.current() + names.length - 1 <= MAX_SUPPLY,
+            _nextTokenId + names.length - 1 <= MAX_SUPPLY,
             "Would exceed maximum supply"
         );
 
@@ -178,7 +175,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
             : _defaultImageData;
 
         for (uint256 i = 0; i < names.length; i++) {
-            uint256 tokenId = _tokenIdCounter.current();
+            uint256 tokenId = _nextTokenId;
 
             _safeMint(to, tokenId);
 
@@ -195,7 +192,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
             });
 
             _tokenArtists[tokenId] = artist;
-            _tokenIdCounter.increment();
+            _nextTokenId++;
 
             string memory onChainURI = _generateOnChainURI(tokenId);
             emit NFTMinted(to, tokenId, onChainURI, artist);
@@ -215,12 +212,12 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     ) external onlyOwner {
         require(metadataURIs.length > 0, "No URIs provided");
         require(
-            _tokenIdCounter.current() + metadataURIs.length - 1 <= MAX_SUPPLY,
+            _nextTokenId + metadataURIs.length - 1 <= MAX_SUPPLY,
             "Would exceed maximum supply"
         );
 
         for (uint256 i = 0; i < metadataURIs.length; i++) {
-            uint256 tokenId = _tokenIdCounter.current();
+            uint256 tokenId = _nextTokenId;
 
             _safeMint(to, tokenId);
             _setTokenURI(tokenId, metadataURIs[i]);
@@ -229,7 +226,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
             // Mark as external URI (not on-chain)
             _onChainMetadata[tokenId].isOnChain = false;
 
-            _tokenIdCounter.increment();
+            _nextTokenId++;
 
             emit NFTMinted(to, tokenId, metadataURIs[i], artist);
         }
@@ -241,7 +238,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
      * @return The artist name
      */
     function getArtist(uint256 tokenId) external view returns (string memory) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         return _tokenArtists[tokenId];
     }
 
@@ -253,7 +250,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     function getOnChainMetadata(
         uint256 tokenId
     ) external view returns (OnChainMetadata memory) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         return _onChainMetadata[tokenId];
     }
 
@@ -263,7 +260,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
      * @return True if the token uses on-chain storage
      */
     function isOnChainToken(uint256 tokenId) external view returns (bool) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         return _onChainMetadata[tokenId].isOnChain;
     }
 
@@ -282,7 +279,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         string memory imageData,
         string memory attributes
     ) external onlyOwner {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         require(
             _onChainMetadata[tokenId].isOnChain,
             "Token does not use on-chain storage"
@@ -320,7 +317,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
      * @return The next token ID to be minted
      */
     function getCurrentTokenId() external view returns (uint256) {
-        return _tokenIdCounter.current();
+        return _nextTokenId;
     }
 
     /**
@@ -328,7 +325,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
      * @return The total supply of minted tokens
      */
     function totalSupply() external view returns (uint256) {
-        return _tokenIdCounter.current() - 1;
+        return _nextTokenId - 1;
     }
 
     /**
@@ -349,7 +346,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         uint256 tokenId,
         string memory newMetadataURI
     ) external onlyOwner {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
         _setTokenURI(tokenId, newMetadataURI);
         emit TokenURIUpdated(tokenId, newMetadataURI);
     }
@@ -376,26 +373,14 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     }
 
     /**
-     * @dev Override to include pause functionality
+     * @dev Override _update to include pause functionality (replaces _beforeTokenTransfer in v5.0)
      */
-    function _beforeTokenTransfer(
-        address from,
+    function _update(
         address to,
         uint256 tokenId,
-        uint256 batchSize
-    ) internal override whenNotPaused {
-        super._beforeTokenTransfer(from, to, tokenId, batchSize);
-    }
-
-    /**
-     * @dev Override required by Solidity for ERC721URIStorage
-     */
-    function _burn(
-        uint256 tokenId
-    ) internal override(ERC721, ERC721URIStorage) {
-        super._burn(tokenId);
-        delete _tokenArtists[tokenId];
-        delete _onChainMetadata[tokenId];
+        address auth
+    ) internal override whenNotPaused returns (address) {
+        return super._update(to, tokenId, auth);
     }
 
     /**
@@ -404,7 +389,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
-        require(_exists(tokenId), "Token does not exist");
+        require(_ownerOf(tokenId) != address(0), "Token does not exist");
 
         // If token uses on-chain storage, generate URI dynamically
         if (_onChainMetadata[tokenId].isOnChain) {

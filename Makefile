@@ -1,53 +1,99 @@
 # MATTERN42 NFT Project Makefile
-.PHONY: help setup deploy status verify mint-nft test clean local-node
+.PHONY: help setup deploy test clean start-node setup-image info mint serve-website open-website stop-website full-demo export-address
 
 # Colors
 GREEN := \033[0;32m
 YELLOW := \033[1;33m
+BLUE := \033[0;34m
+RED := \033[0;31m
 NC := \033[0m
+
+# Default target
+all: help
 
 help: ## Show help
 	@echo "$(GREEN)MATTERN42 NFT Project$(NC)"
-	@echo "$(YELLOW)Commands:$(NC)"
+	@echo "$(YELLOW)Available Commands:$(NC)"
 	@awk 'BEGIN {FS = ":.*##"} /^[a-zA-Z_-]+:.*##/ { printf "  $(GREEN)%-15s$(NC) %s\n", $$1, $$2 }' $(MAKEFILE_LIST)
 
-# Development
-setup: ## Install dependencies and compile
-	@echo "$(GREEN)Setting up NFT project...$(NC)"
+# Setup
+setup: ## Install dependencies and compile contracts
+	@echo "$(GREEN)🔧 Setting up project...$(NC)"
 	@cd deployment && npm install && npx hardhat compile
+	@echo "$(GREEN)✅ Setup complete!$(NC)"
 
-test: ## Run tests
+test: ## Run unit tests
+	@echo "$(BLUE)🧪 Running tests...$(NC)"
 	@cd deployment && npx hardhat test
 
-clean: ## Clean artifacts
-	@cd deployment && rm -rf cache artifacts node_modules
+clean: ## Clean artifacts and cache  
+	@echo "$(YELLOW)🧹 Cleaning...$(NC)"
+	@cd deployment && rm -rf cache artifacts deployments reports data
 
-# Deployment & Management (Sepolia)
-deploy: ## Deploy NFT contract on Sepolia
-	@cd deployment && node nft-manage.js deploy --network sepolia
+# Development
 
-status: ## Show NFT deployment status on Sepolia
-	@cd deployment && node nft-manage.js status --network sepolia
+deploy: ## Deploy contract to Sepolia
+	@echo "$(GREEN)🚀 Deploying to Sepolia...$(NC)"
+	@cd deployment && npx hardhat run scripts/deploy.js --network sepolia
+	@make export-address
 
-verify: ## Verify NFT contract on Etherscan
-	@cd deployment && node nft-manage.js verify --network sepolia
+export-address: ## Export contract address for website
+	@echo "$(BLUE)📤 Exporting contract address...$(NC)"
+	@cd deployment && npx hardhat run scripts/export-address.js --network sepolia
 
-mint-nft: ## Mint NFT on Sepolia (use: make mint-nft RECIPIENT=0x... URI=ipfs://...)
-	@cd deployment && node nft-manage.js mint RECIPIENT=$(RECIPIENT) URI=$(URI) ARTIST=$(or $(ARTIST),lmattern) --network sepolia
+setup-image: ## Setup image data in contract
+	@echo "$(BLUE)🖼️  Setting up image...$(NC)"
+	@cd deployment && npx hardhat run scripts/setup-image.js --network sepolia
 
-# Alternative mint using the mint folder script
-mint-single: ## Mint single NFT using mint script (use: make mint-single TO=0x... URI=ipfs://...)
-	@cd mint && node mint.js --to $(TO) --uri $(URI) --artist $(or $(ARTIST),lmattern) --network sepolia
+info: ## Show contract information
+	@echo "$(BLUE)📊 Contract info...$(NC)"
+	@cd deployment && npx hardhat run scripts/info.js --network sepolia
 
-mint-batch: ## Batch mint NFTs (use: make mint-batch TO=0x... FOLDER=./metadata)
-	@cd mint && node mint.js --batch --to $(TO) --folder $(FOLDER) --artist $(or $(ARTIST),lmattern) --network sepolia
+test-contract: ## Test deployed contract
+	@echo "$(BLUE)🧪 Testing contract...$(NC)"
+	@cd deployment && npx hardhat run scripts/test-contract.js --network sepolia
 
-# Local development
-local-node: ## Start local Hardhat node
-	@cd deployment && npx hardhat node
+mint: ## Mint sample NFTs
+	@echo "$(GREEN)🎨 Minting NFTs...$(NC)"
+	@cd deployment && npx hardhat run scripts/mint-nfts.js --network sepolia
 
-deploy-local: ## Deploy on local network
-	@cd deployment && node nft-manage.js deploy
+# Complete workflows
+full-sepolia: ## Complete Sepolia workflow
+	@echo "$(GREEN)🔄 Complete Sepolia workflow...$(NC)"
+	@make setup
+	@make deploy  
+	@make setup-image
+	@make test-contract
+	@make mint
+	@echo "$(GREEN)🎉 Sepolia workflow complete!$(NC)"
 
-status-local: ## Show status on local network  
-	@cd deployment && node nft-manage.js status
+# Website
+serve-website: ## Serve website locally
+	@echo "$(BLUE)🌐 Starting website server...$(NC)"
+	@cd website && python3 -m http.server 8080 || python -m SimpleHTTPServer 8080
+
+open-website: ## Open website in browser
+	@echo "$(BLUE)🌐 Opening website...$(NC)"
+	@cd website && (python3 -m http.server 8080 & echo $$! > .server.pid) && sleep 2 && xdg-open http://localhost:8080 2>/dev/null || open http://localhost:8080 2>/dev/null || echo "Open http://localhost:8080 in your browser"
+
+stop-website: ## Stop website server
+	@echo "$(YELLOW)🛑 Stopping website server...$(NC)"
+	@cd website && if [ -f .server.pid ]; then kill `cat .server.pid` 2>/dev/null && rm .server.pid; fi
+
+# Complete workflow with website
+full-demo: ## Complete demo with website on Sepolia
+	@echo "$(GREEN)🔄 Complete demo workflow...$(NC)"
+	@make setup
+	@make deploy  
+	@make setup-image
+	@make test-contract
+	@make mint
+	@echo "$(GREEN)🌐 Starting website...$(NC)"
+	@make open-website
+	@echo "$(GREEN)🎉 Demo complete! Website running at http://localhost:8080$(NC)"
+	@echo "$(YELLOW)💡 You can now mint NFTs on Sepolia through the web interface!$(NC)"
+
+# Additional Sepolia commands
+verify: ## Verify contract on Etherscan
+	@echo "$(BLUE)✅ Verifying on Etherscan...$(NC)"
+	@cd deployment && npx hardhat verify --network sepolia $$(grep 'TOKEN_ADDRESS=' ../.env | cut -d'=' -f2)
