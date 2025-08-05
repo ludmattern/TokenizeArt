@@ -159,6 +159,136 @@ class UIUtils {
     }
 
     /**
+     * Create and show image modal
+     * @param {string} imageUrl - URL of the image to display
+     * @param {string} title - Title for the modal
+     */
+    static showImageModal(imageUrl, title) {
+        // Remove existing modal if any
+        const existingModal = document.getElementById('imageModal');
+        if (existingModal) existingModal.remove();
+
+        const modal = document.createElement('div');
+        modal.id = 'imageModal';
+        modal.style.cssText = `
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.3);
+            backdrop-filter: blur(8px);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10000;
+            cursor: pointer;
+            animation: modalFadeIn 0.3s ease-out;
+        `;
+
+        modal.innerHTML = `
+            <style>
+                @keyframes modalFadeIn {
+                    from { opacity: 0; transform: scale(0.9); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+                @keyframes imageZoomIn {
+                    from { opacity: 0; transform: scale(0.8); }
+                    to { opacity: 1; transform: scale(1); }
+                }
+            </style>
+            <div style="
+                background: var(--card-bg);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-lg);
+                padding: 2rem;
+                max-width: 90vw;
+                max-height: 90vh;
+                display: flex;
+                flex-direction: column;
+                align-items: center;
+                position: relative;
+                animation: imageZoomIn 0.4s ease-out;
+            " onclick="event.stopPropagation();">
+                <button onclick="document.getElementById('imageModal').remove()" style="
+                    position: absolute;
+                    top: 1rem;
+                    right: 1rem;
+                    background: rgba(255, 255, 255, 0.1);
+                    border: 1px solid var(--border-color);
+                    color: var(--text-primary);
+                    border-radius: 50%;
+                    width: 40px;
+                    height: 40px;
+                    display: flex;
+                    align-items: center;
+                    justify-content: center;
+                    cursor: pointer;
+                    font-size: 1.2rem;
+                    transition: all 0.3s ease;
+                " onmouseover="this.style.background='rgba(239, 68, 68, 0.2)'; this.style.borderColor='var(--error)'" 
+                   onmouseout="this.style.background='rgba(255, 255, 255, 0.1)'; this.style.borderColor='var(--border-color)'">×</button>
+                
+                <h3 style="
+                    color: var(--text-primary);
+                    margin-bottom: 1.5rem;
+                    text-align: center;
+                    background: var(--accent-gradient);
+                    -webkit-background-clip: text;
+                    -webkit-text-fill-color: transparent;
+                    background-clip: text;
+                ">${title}</h3>
+                
+                <img src="${imageUrl}" 
+                     alt="${title}"
+                     style="
+                        max-width: 100%;
+                        max-height: 70vh;
+                        object-fit: contain;
+                        border-radius: var(--border-radius);
+                        box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                        border: 1px solid var(--border-color);
+                     "
+                     onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                
+                <div style="
+                    width: 300px;
+                    height: 300px;
+                    background: var(--accent-gradient);
+                    border-radius: var(--border-radius);
+                    display: none;
+                    align-items: center;
+                    justify-content: center;
+                    font-size: 4rem;
+                    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+                ">🦡</div>
+                
+                <p style="
+                    color: var(--text-secondary);
+                    margin-top: 1rem;
+                    font-size: 0.9rem;
+                    text-align: center;
+                ">Click anywhere outside to close</p>
+            </div>
+        `;
+
+        // Close modal when clicking outside
+        modal.onclick = () => modal.remove();
+
+        // Close modal with Escape key
+        const handleKeyDown = (e) => {
+            if (e.key === 'Escape') {
+                modal.remove();
+                document.removeEventListener('keydown', handleKeyDown);
+            }
+        };
+        document.addEventListener('keydown', handleKeyDown);
+
+        document.body.appendChild(modal);
+    }
+
+    /**
      * Format Ethereum address for display
      * @param {string} address - The full address
      * @returns {string} - Formatted address (0x1234...5678)
@@ -178,6 +308,9 @@ class UIUtils {
         const metadata = nft.metadata || {};
         const isOnChain = nft.uri.startsWith('data:application/json;base64,');
         
+        // Use metadata name if available, otherwise create default name
+        const nftTitle = metadata.name || `${CONFIG.APP.COLLECTION_NAME} #${nft.id}`;
+        
         let imageHtml = '';
         if (metadata.image) {
             let imageUrl = metadata.image;
@@ -187,24 +320,98 @@ class UIUtils {
             
             imageHtml = `
                 <img src="${imageUrl}" 
-                     alt="${metadata.name || CONFIG.APP.COLLECTION_NAME}" 
-                     style="width: 100%; height: 150px; object-fit: contain; border-radius: 8px; background: rgba(255,255,255,0.1);" 
+                     alt="${nftTitle}" 
+                     style="
+                        width: 100%; 
+                        height: 200px; 
+                        object-fit: contain; 
+                        border-radius: var(--border-radius); 
+                        background: rgba(0, 0, 0, 0.1);
+                        border: 1px solid var(--border-color);
+                        cursor: pointer;
+                        transition: all 0.3s ease;
+                     "
+                     onclick="UIUtils.showImageModal('${imageUrl}', '${nftTitle.replace(/'/g, "\\'")}');"
+                     onmouseover="this.style.transform='scale(1.02)'; this.style.boxShadow='0 8px 24px rgba(0, 212, 255, 0.2)'"
+                     onmouseout="this.style.transform='scale(1)'; this.style.boxShadow='none'"
                      onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                <div style="width: 100%; height: 150px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); border-radius: 8px; display: none; align-items: center; justify-content: center; font-size: 2rem;">🦡42</div>
+                <div style="
+                    width: 100%; 
+                    height: 200px; 
+                    background: var(--accent-gradient); 
+                    border-radius: var(--border-radius); 
+                    display: none; 
+                    align-items: center; 
+                    justify-content: center; 
+                    font-size: 3rem;
+                    cursor: pointer;
+                    transition: all 0.3s ease;
+                " onclick="UIUtils.showImageModal('', '${nftTitle.replace(/'/g, "\\'")}');"
+                   onmouseover="this.style.transform='scale(1.02)'"
+                   onmouseout="this.style.transform='scale(1)'">🦡</div>
             `;
         } else {
-            imageHtml = `<div style="width: 100%; height: 150px; background: linear-gradient(45deg, #ff6b6b, #4ecdc4); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🦡42</div>`;
+            imageHtml = `<div style="
+                width: 100%; 
+                height: 200px; 
+                background: var(--accent-gradient); 
+                border-radius: var(--border-radius); 
+                display: flex; 
+                align-items: center; 
+                justify-content: center; 
+                font-size: 3rem;
+                cursor: pointer;
+                transition: all 0.3s ease;
+            " onclick="UIUtils.showImageModal('', '${nftTitle.replace(/'/g, "\\'")}');"
+               onmouseover="this.style.transform='scale(1.02)'"
+               onmouseout="this.style.transform='scale(1)'">🦡</div>`;
         }
 
-        const storageType = isOnChain ? '💎 On-Chain Storage' : '🌐 IPFS Storage';
-        const storageColor = isOnChain ? '#4ecdc4' : '#ffd700';
+        const storageType = isOnChain ? 'On-Chain' : 'IPFS';
+        const storageColor = isOnChain ? 'var(--accent-secondary)' : 'var(--accent-primary)';
 
         return `
             ${imageHtml}
-            <h4>${metadata.name || CONFIG.APP.COLLECTION_NAME} #${nft.id}</h4>
-            <p style="font-size: 0.9rem; opacity: 0.8; margin: 5px 0;">${metadata.description || 'NFT from the collection'}</p>
-            <div style="font-size: 0.8rem; color: ${storageColor};">${storageType}</div>
-            <a href="${CONFIG.NETWORK.ETHERSCAN_URL}/token/${contractAddress}?a=${nft.id}" target="_blank" style="color: #ffd700; text-decoration: none; font-size: 0.9rem;">📱 View on Etherscan</a>
+            <h4>${nftTitle}</h4>
+            <p style="
+                color: var(--text-secondary);
+                font-size: 0.875rem; 
+                margin: 0.75rem 0;
+                line-height: 1.4;
+            ">${metadata.description || 'NFT from the collection'}</p>
+            <div style="
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                margin-top: 1rem;
+                padding-top: 1rem;
+                border-top: 1px solid var(--border-color);
+            ">
+                <span style="
+                    font-size: 0.75rem; 
+                    color: ${storageColor};
+                    background: rgba(0, 0, 0, 0.2);
+                    padding: 0.25rem 0.5rem;
+                    border-radius: 12px;
+                    border: 1px solid ${storageColor}33;
+                ">${storageType}</span>
+                <a href="${CONFIG.NETWORK.ETHERSCAN_URL}/token/${contractAddress}?a=${nft.id}" 
+                   target="_blank" 
+                   style="
+                        color: var(--accent-primary); 
+                        text-decoration: none; 
+                        font-size: 0.75rem;
+                        padding: 0.25rem 0.5rem;
+                        border-radius: 6px;
+                        border: 1px solid var(--border-color);
+                        background: rgba(0, 0, 0, 0.2);
+                        transition: all 0.3s ease;
+                   "
+                   onmouseover="this.style.borderColor='var(--accent-primary)'; this.style.background='rgba(0, 212, 255, 0.1)'"
+                   onmouseout="this.style.borderColor='var(--border-color)'; this.style.background='rgba(0, 0, 0, 0.2)'">
+                    Etherscan
+                </a>
+            </div>
         `;
     }
 }
@@ -217,3 +424,6 @@ if (typeof module !== 'undefined' && module.exports) {
     window.MetadataUtils = MetadataUtils;
     window.UIUtils = UIUtils;
 }
+
+// For ES6 modules
+export { IPFSUtils, MetadataUtils, UIUtils };

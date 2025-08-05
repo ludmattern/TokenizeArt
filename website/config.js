@@ -52,10 +52,10 @@ async function loadConfig() {
             CONFIG.CONTRACT.ADDRESS = serverConfig.TOKEN_ADDRESS;
         }
         
-        console.log('✅ Configuration loaded from server');
+        console.log('Configuration loaded from server');
         return CONFIG;
     } catch (error) {
-        console.error('❌ Failed to load server config:', error);
+        console.error('Failed to load server config:', error);
         // Fallback to default values if server is not available
         return CONFIG;
     }
@@ -63,7 +63,11 @@ async function loadConfig() {
 
 // Export configuration
 if (typeof module !== 'undefined' && module.exports) {
-    module.exports = CONFIG;
+    module.exports = { CONFIG, loadConfig };
 } else {
     window.CONFIG = CONFIG;
+    window.loadConfig = loadConfig;
 }
+
+// For ES6 modules
+export { CONFIG, loadConfig };

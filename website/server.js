@@ -25,6 +25,6 @@ app.get('/', (req, res) => {
 
 // Start server
 app.listen(PORT, () => {
-    console.log(`🚀 MATTERN42 NFT Server running at http://localhost:${PORT}`);
-    console.log(`📱 Open your browser and connect MetaMask to Sepolia testnet`);
+    console.log(`MATTERN42 NFT Server running at http://localhost:${PORT}`);
+    console.log(`Open your browser and connect MetaMask to Sepolia testnet`);
 });

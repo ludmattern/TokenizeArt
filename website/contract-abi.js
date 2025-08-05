@@ -141,3 +141,6 @@ if (typeof module !== 'undefined' && module.exports) {
 } else {
     window.CONTRACT_ABI = CONTRACT_ABI;
 }
+
+// For ES6 modules
+export { CONTRACT_ABI };

@@ -3,79 +3,172 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>MATTERN42 NFT - Simple Mint</title>
+    <meta name="description" content="Mint your unique MATTERN42 NFT on Ethereum - Professional NFT minting platform with IPFS and on-chain storage options">
+    <meta name="keywords" content="NFT, Ethereum, Mint, MATTERN42, Blockchain, IPFS">
+    <meta name="author" content="MATTERN42">
+    <title>MATTERN42 NFT - Professional Minting Platform</title>
+    
+    <!-- Preload critical resources -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    
+    <!-- Ethers.js -->
     <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    
+    <!-- Styles -->
     <link rel="stylesheet" href="style.css">
+    
+    <!-- Favicon -->
+    <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🦡</text></svg>">
 </head>
 <body>
-    <div class="container">
-        <h1>🦡 MATTERN42 NFT</h1>
+    <main class="container" role="main">
+        <header>
+            <h1>
+                <span role="img" aria-label="Badger">🦡</span>
+                MATTERN42 NFT
+            </h1>
+        </header>
         
-        <!-- Stats -->
-        <div class="stats">
+        <!-- Statistics Dashboard -->
+        <section class="stats" aria-label="NFT Statistics">
             <div class="stat">
-                <div class="stat-number" id="totalSupply">-</div>
-                <div>Total</div>
+                <div class="stat-number" id="totalSupply" aria-live="polite">-</div>
+                <div>Total Supply</div>
             </div>
             <div class="stat">
-                <div class="stat-number" id="userBalance">-</div>
-                <div>Your NFTs</div>
+                <div class="stat-number" id="userBalance" aria-live="polite">-</div>
+                <div>Your Collection</div>
             </div>
             <div class="stat" id="contractInfo" style="display: none;">
-                <div style="font-size: 0.8rem; color: #ffd700; word-break: break-all;" id="contractDisplay"></div>
-                <div>Contract</div>
-                <button onclick="app.resetContract()" style="
-                    background: transparent; 
-                    border: 1px solid rgba(255,255,255,0.3); 
-                    color: rgba(255,255,255,0.7); 
-                    border-radius: 4px; 
-                    padding: 2px 8px; 
-                    font-size: 0.7rem; 
-                    cursor: pointer; 
-                    margin-top: 5px;
-                ">Change</button>
+                <div id="contractDisplay" role="text" aria-label="Contract Address"></div>
+                <div>Smart Contract</div>
+                <button 
+                    onclick="app.resetContract()" 
+                    aria-label="Change contract address"
+                    title="Change contract address"
+                >
+                    Change Contract
+                </button>
             </div>
-        </div>
+        </section>
 
-        <!-- Connect -->
-        <div id="connectSection">
-            <button class="mint-btn" onclick="app.connectWallet()">Connect Wallet</button>
-        </div>
+        <!-- Wallet Connection -->
+        <section id="connectSection" aria-label="Wallet Connection">
+            <button 
+                class="mint-btn" 
+                onclick="app.connectWallet()"
+                aria-label="Connect your Ethereum wallet"
+            >
+                Connect Wallet
+            </button>
+            <p style="color: var(--text-secondary); font-size: 0.875rem; margin-top: 1rem;">
+                Connect your MetaMask or compatible Ethereum wallet to start minting
+            </p>
+        </section>
 
-        <!-- Mint -->
-        <div id="mintSection" class="hidden">
+        <!-- Minting Interface -->
+        <section id="mintSection" class="hidden" aria-label="NFT Minting">
             <div class="mint-section">
-                <div class="mode-selection">
-                    <button class="mode-btn active" onclick="app.setMode('ipfs')">🌐 IPFS (~0.0002 ETH)</button>
-                    <button class="mode-btn" onclick="app.setMode('onchain')">💎 On-Chain (~0.3 ETH)</button>
+                <!-- Storage Mode Selection -->
+                <div class="mode-selection" role="radiogroup" aria-label="Choose storage method">
+                    <button 
+                        class="mode-btn active" 
+                        onclick="app.setMode('ipfs')"
+                        role="radio"
+                        aria-checked="true"
+                        aria-label="IPFS storage mode"
+                    >
+                        IPFS Storage
+                        <small style="display: block; font-size: 0.75rem; opacity: 0.8;">~0.0002 ETH</small>
+                    </button>
+                    <button 
+                        class="mode-btn" 
+                        onclick="app.setMode('onchain')"
+                        role="radio"
+                        aria-checked="false"
+                        aria-label="On-chain storage mode"
+                    >
+                        On-Chain Storage
+                        <small style="display: block; font-size: 0.75rem; opacity: 0.8;">~0.3 ETH</small>
+                    </button>
+                </div>
                 </div>
                 
-                <div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9rem;">
+                                <!-- Mode Information -->
+                <div class="mode-info">
                     <div id="modeInfo">
-                        🌐 <strong>IPFS Mode:</strong> Metadata with IPFS image reference - Lower cost, traditional approach
+                        <strong>IPFS Mode:</strong> Metadata with IPFS image reference - Lower cost, traditional approach
                     </div>
                 </div>
                 
-                <input type="text" id="nftName" placeholder="NFT Name" value="BADGER42">
-                <input type="text" id="nftDescription" placeholder="Description" value="A unique NFT from the BADGER42 collection">
+                <!-- Collection Info -->
+                <div style="
+                    margin: 1.5rem 0;
+                    padding: 1.25rem;
+                    background: rgba(16, 185, 129, 0.05);
+                    border: 1px solid rgba(16, 185, 129, 0.2);
+                    border-radius: var(--border-radius);
+                    text-align: left;
+                ">
+                    <h3 style="
+                        color: var(--success);
+                        margin: 0 0 0.75rem 0;
+                        font-size: 1rem;
+                        font-weight: 600;
+                    ">
+                        <span role="img" aria-hidden="true">🦡</span>
+                        BADGER42 Collection
+                    </h3>
+                    <p style="
+                        color: var(--text-secondary);
+                        margin: 0;
+                        font-size: 0.9rem;
+                        line-height: 1.5;
+                    ">
+                        Each NFT features the unique BADGER42 artwork with automatic naming and numbering. 
+                        Your NFT will be named based on the collection standard.
+                    </p>
+                </div>
                 
-                <button class="mint-btn" onclick="app.mint()" id="mintBtn">🎨 Mint NFT</button>
+                <!-- Minting Actions -->
+                <div class="mint-actions">
+                    <button 
+                        class="mint-btn" 
+                        onclick="app.mint()" 
+                        id="mintBtn"
+                        aria-label="Mint your NFT"
+                    >
+                        Mint NFT
+                    </button>
+                </div>
             </div>
-        </div>
+        </section>
 
-        <!-- Status -->
-        <div id="status"></div>
+        <!-- Transaction Status -->
+        <section id="status" class="status-section" role="status" aria-live="polite"></section>
 
-        <!-- Gallery -->
-        <div id="gallery" class="nft-gallery"></div>
-    </div>
+        <!-- NFT Gallery -->
+        <section id="gallery" class="nft-gallery" aria-label="Your NFT Collection"></section>
+    </main>
 
-    <script src="config.js"></script>
-    <script src="contract-abi.js"></script>
-    <script src="utils.js"></script>
-    <script src="app.js"></script>
-    <script>
-        // Initialize the app
+    <!-- Scripts -->
+    <script type="module">
+        // Import modules
+        import { CONFIG, loadConfig } from './config.js';
+        import { CONTRACT_ABI } from './contract-abi.js';
+        import { IPFSUtils, MetadataUtils, UIUtils } from './utils.js';
+        import { NFTApp } from './app.js';
+        
+        // Make available globally for onclick handlers
+        window.CONFIG = CONFIG;
+        window.CONTRACT_ABI = CONTRACT_ABI;
+        window.IPFSUtils = IPFSUtils;
+        window.MetadataUtils = MetadataUtils;
+        window.UIUtils = UIUtils;
+        window.NFTApp = NFTApp;
+        
+        // Initialize the app with proper error handling
         let app;
         
         // Initialize when page loads
@@ -86,13 +179,18 @@
                 
                 // Then initialize the app
                 app = new NFTApp();
+                window.app = app; // Make available for onclick handlers
                 await app.init();
                 
-                console.log('🎨 MATTERN42 NFT App initialized successfully');
+                console.log('MATTERN42 NFT App initialized successfully');
             } catch (error) {
-                console.error('❌ Failed to initialize app:', error);
-                document.getElementById('status').innerHTML = 
-                    '<div style="color: #ff6b6b;">⚠️ Failed to initialize application. Please refresh the page.</div>';
+                console.error('Failed to initialize app:', error);
+                const statusElement = document.getElementById('status');
+                if (statusElement) {
+                    statusElement.innerHTML = 
+                        '<div class="status error">Failed to initialize application. Please refresh the page.</div>';
+                    statusElement.style.display = 'block';
+                }
             }
         });
     </script>

@@ -40,66 +40,101 @@ class NFTApp {
         const inputDiv = document.createElement('div');
         inputDiv.id = 'contractInputForm';
         inputDiv.innerHTML = `
-            <div style="
-                background: rgba(30, 30, 30, 0.9); 
-                border: 2px solid #4ecdc4; 
-                border-radius: 15px; 
-                padding: 30px; 
-                margin: 20px 0; 
+            <section class="contract-input-section" style="
+                background: var(--glass-bg);
+                backdrop-filter: blur(16px);
+                border: 1px solid var(--border-color);
+                border-radius: var(--border-radius-lg);
+                padding: 2rem;
+                margin: 2rem 0;
                 text-align: center;
-                backdrop-filter: blur(10px);
+                position: relative;
+                overflow: hidden;
             ">
-                <h2 style="color: #4ecdc4; margin-top: 0;">🦡 ${CONFIG.APP.NAME}</h2>
-                <p style="margin-bottom: 25px;">Entrez l'adresse du contrat NFT déployé :</p>
+                <div style="
+                    position: absolute;
+                    top: 0;
+                    left: 0;
+                    right: 0;
+                    height: 2px;
+                    background: var(--accent-gradient);
+                    opacity: 0.8;
+                "></div>
                 
-                <div style="margin: 20px 0;">
+                <p style="
+                    color: var(--text-secondary);
+                    margin-bottom: 1.5rem;
+                    font-size: 0.95rem;
+                    line-height: 1.5;
+                ">
+                    Enter the address of your deployed NFT contract to continue
+                </p>
+
+                <div class="form-section" style="margin: 1.5rem 0;">
                     <input 
                         type="text" 
                         id="contractAddressInput" 
                         placeholder="0x..." 
                         style="
-                            padding: 15px; 
-                            border-radius: 8px; 
-                            border: 2px solid #4ecdc4; 
-                            background: rgba(0,0,0,0.5); 
-                            color: white; 
-                            font-family: monospace;
                             width: 100%;
-                            max-width: 400px;
+                            padding: 1rem 1.25rem;
+                            border: 1px solid var(--border-color);
+                            border-radius: var(--border-radius);
+                            background: var(--glass-bg);
+                            color: var(--text-primary);
+                            font-size: 0.9rem;
+                            font-family: 'JetBrains Mono', monospace;
                             text-align: center;
-                            font-size: 14px;
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                            outline: none;
+                            margin-bottom: 1.5rem;
                         "
-                        value="enter address of the NFT contract"
+                        onfocus="this.style.borderColor='var(--accent-primary)'; this.style.boxShadow='0 0 0 3px rgba(0, 212, 255, 0.1)'; this.style.background='rgba(255, 255, 255, 0.02)'"
+                        onblur="this.style.borderColor='var(--border-color)'; this.style.boxShadow='none'; this.style.background='var(--glass-bg)'"
+                        value=""
                     >
-                    <br><br>
+                    
                     <button 
                         onclick="app.setContractAddress()" 
                         style="
-                            padding: 15px 30px; 
-                            background: #4ecdc4; 
-                            color: #1a1a1a; 
-                            border: none; 
-                            border-radius: 8px; 
-                            cursor: pointer; 
-                            font-weight: bold;
-                            font-size: 16px;
+                            background: var(--accent-gradient);
+                            color: var(--text-primary);
+                            border: none;
+                            padding: 1rem 2.5rem;
+                            border-radius: 12px;
+                            font-size: 1rem;
+                            font-weight: 600;
+                            cursor: pointer;
+                            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                            position: relative;
+                            overflow: hidden;
+                            min-width: 180px;
+                            font-family: inherit;
                         "
+                        onmouseover="this.style.transform='translateY(-2px)'; this.style.boxShadow='0 0 40px rgba(0, 212, 255, 0.15)'"
+                        onmouseout="this.style.transform='translateY(0)'; this.style.boxShadow='none'"
                     >
-                        🚀 Utiliser cette adresse
+                        Use This Contract
                     </button>
                 </div>
                 
                 <div style="
-                    margin-top: 20px; 
-                    padding: 15px; 
-                    background: rgba(0,0,0,0.3); 
-                    border-radius: 8px;
-                    font-size: 0.9rem;
-                    opacity: 0.8;
+                    margin-top: 1.5rem;
+                    padding: 1rem;
+                    background: rgba(0, 212, 255, 0.05);
+                    border: 1px solid rgba(0, 212, 255, 0.1);
+                    border-radius: var(--border-radius);
+                    font-size: 0.8rem;
+                    color: var(--text-secondary);
+                    text-align: left;
                 ">
-                    💡 <strong>Conseil :</strong> L'adresse pré-remplie est le contrat ${CONFIG.APP.NAME} déployé sur Sepolia
+                    <strong style="color: var(--accent-primary);">ℹ️ Info:</strong>
+                    This address will be stored locally in your browser. You can find contract addresses on 
+                    <a href="https://sepolia.etherscan.io" target="_blank" style="color: var(--accent-primary); text-decoration: none; border-bottom: 1px dotted var(--accent-primary);">
+                        Sepolia Etherscan
+                    </a> or use the deployed contract from your .env file.
                 </div>
-            </div>
+            </section>
         `;
         
         // Insert after stats section
@@ -117,19 +152,27 @@ class NFTApp {
         const address = addressInput.value.trim();
         
         if (!address) {
-            UIUtils.showStatus('Veuillez entrer une adresse de contrat', 'error');
+            UIUtils.showStatus('', 'error');
             return;
         }
         
         if (!ethers.isAddress(address)) {
-            UIUtils.showStatus('Format d\'adresse Ethereum invalide', 'error');
-            addressInput.style.borderColor = '#ff6b6b';
+            UIUtils.showStatus('Invalid Ethereum address format', 'error');
+            const input = document.getElementById('contractAddressInput');
+            input.style.borderColor = 'var(--error)';
+            input.style.boxShadow = '0 0 0 3px rgba(239, 68, 68, 0.1)';
+            setTimeout(() => {
+                input.style.borderColor = 'var(--border-color)';
+                input.style.boxShadow = 'none';
+            }, 3000);
             return;
         }
         
         // Set the contract address
         CONFIG.CONTRACT.ADDRESS = address;
-        addressInput.style.borderColor = '#4caf50';
+        const input = document.getElementById('contractAddressInput');
+        input.style.borderColor = 'var(--success)';
+        input.style.boxShadow = '0 0 0 3px rgba(16, 185, 129, 0.1)';
         
         // Save to local storage
         localStorage.setItem(CONFIG.CONTRACT.STORAGE_KEY, address);
@@ -140,7 +183,7 @@ class NFTApp {
         
         document.getElementById('connectSection').style.display = 'block';
         this.showContractInfo();
-        UIUtils.showStatus(`✅ Adresse de contrat définie : ${UIUtils.formatAddress(address)}`, 'success');
+        UIUtils.showStatus(`Contract address defined: ${UIUtils.formatAddress(address)}`, 'success');
     }
 
     // Reset contract address
@@ -156,7 +199,7 @@ class NFTApp {
         if (existingForm) existingForm.remove();
         
         this.showContractInputForm();
-        UIUtils.showStatus('Adresse de contrat réinitialisée. Veuillez saisir une nouvelle adresse.', 'info');
+        UIUtils.showStatus('Contract address reset. Please enter a new address.', 'info');
     }
 
     // Show contract info in stats
@@ -231,11 +274,11 @@ class NFTApp {
         const modeInfo = document.getElementById('modeInfo');
         
         if (mode === 'ipfs') {
-            btn.textContent = '🌐 Mint IPFS NFT (Pinata)';
-            modeInfo.innerHTML = '🌐 <strong>IPFS Mode (Pinata):</strong> Métadonnées uploadées sur IPFS via Pinata - Compatible avec tous les marketplaces';
+            btn.textContent = 'Mint IPFS NFT (Pinata)';
+            modeInfo.innerHTML = '<strong>IPFS Mode (Pinata):</strong> Métadonnées uploadées sur IPFS via Pinata - Compatible avec tous les marketplaces';
         } else {
-            btn.textContent = '💎 Mint On-Chain NFT';
-            modeInfo.innerHTML = '💎 <strong>On-Chain Mode:</strong> Metadata + image fully embedded in blockchain - Higher cost, permanent storage';
+            btn.textContent = 'Mint On-Chain NFT';
+            modeInfo.innerHTML = '<strong>On-Chain Mode:</strong> Metadata + image fully embedded in blockchain - Higher cost, permanent storage';
         }
     }
 
@@ -246,8 +289,21 @@ class NFTApp {
             return;
         }
 
-        const name = document.getElementById('nftName').value || CONFIG.APP.COLLECTION_NAME;
-        const description = document.getElementById('nftDescription').value || `A unique NFT from the ${CONFIG.APP.COLLECTION_NAME} collection`;
+        // Generate automatic NFT naming and description
+        let name, description;
+        
+        try {
+            // Get next token ID for unique naming
+            const totalSupply = await this.contract.totalSupply();
+            const nextTokenId = Number(totalSupply) + 1;
+            
+            name = `${CONFIG.APP.COLLECTION_NAME} #${nextTokenId}`;
+            description = `A unique NFT from the ${CONFIG.APP.COLLECTION_NAME} collection. Token ID: ${nextTokenId}`;
+        } catch (error) {
+            // Fallback if we can't get total supply
+            name = CONFIG.APP.COLLECTION_NAME;
+            description = `A unique NFT from the ${CONFIG.APP.COLLECTION_NAME} collection`;
+        }
 
         try {
             document.getElementById('mintBtn').disabled = true;
@@ -263,27 +319,27 @@ class NFTApp {
                 // Generate IPFS metadata automatically
                 const metadata = MetadataUtils.createIPFSMetadata(name, description, nextTokenId);
                 
-                UIUtils.showStatus('🌐 Uploading metadata to IPFS via Pinata...', 'info');
+                UIUtils.showStatus('Uploading metadata to IPFS via Pinata...', 'info');
                 
                 // Upload metadata to IPFS using Pinata
                 let metadataURI;
                 try {
                     const metadataHash = await IPFSUtils.uploadToIPFS(metadata);
                     metadataURI = `ipfs://${metadataHash}`;
-                    UIUtils.showStatus(`✅ Metadata uploaded: ${metadataURI}`, 'success');
+                    UIUtils.showStatus(`Metadata uploaded: ${metadataURI}`, 'success');
                 } catch (ipfsError) {
                     // Fallback to base64 if IPFS fails
                     const metadataJson = JSON.stringify(metadata);
                     const metadataBase64 = btoa(metadataJson);
                     metadataURI = `data:application/json;base64,${metadataBase64}`;
-                    UIUtils.showStatus('⚠️ Using base64 fallback (configure Pinata for marketplace compatibility)', 'info');
+                    UIUtils.showStatus('Using base64 fallback (configure Pinata for marketplace compatibility)', 'info');
                 }
                 
                 gasEstimate = await this.contract.mint.estimateGas(this.userAddress, metadataURI, CONFIG.APP.ARTIST_NAME);
                 gasPrice = (await this.provider.getFeeData()).gasPrice;
                 estimatedCost = gasEstimate * gasPrice;
                 
-                UIUtils.showStatus(`💰 IPFS Mint: ~${ethers.formatEther(estimatedCost)} ETH`, 'info');
+                UIUtils.showStatus(`IPFS Mint: ~${ethers.formatEther(estimatedCost)} ETH`, 'info');
                 await new Promise(resolve => setTimeout(resolve, 2000));
                 UIUtils.showStatus('Minting IPFS NFT...', 'info');
                 
@@ -303,17 +359,17 @@ class NFTApp {
                 tx = await this.contract.mintOnChain(this.userAddress, name, description, CONFIG.APP.ARTIST_NAME, '', attributes);
             }
 
-            UIUtils.showStatus('⏳ Transaction submitted...', 'info');
+            UIUtils.showStatus('Transaction submitted...', 'info');
             const receipt = await tx.wait();
             
             const actualCost = receipt.gasUsed * receipt.gasPrice;
-            UIUtils.showStatus(`✅ NFT Minted! Cost: ${ethers.formatEther(actualCost)} ETH`, 'success');
+            UIUtils.showStatus(`NFT Minted! Cost: ${ethers.formatEther(actualCost)} ETH`, 'success');
             
             // Refresh stats and gallery after successful mint
             await this.refreshStats();
             
         } catch (error) {
-            UIUtils.showStatus('❌ Mint failed: ' + error.message, 'error');
+            UIUtils.showStatus('Mint failed: ' + error.message, 'error');
         } finally {
             document.getElementById('mintBtn').disabled = false;
         }
@@ -358,11 +414,11 @@ class NFTApp {
 
         } catch (error) {
             if (error.message.includes('No contract found')) {
-                UIUtils.showStatus('❌ Aucun contrat trouvé à cette adresse', 'error');
+                UIUtils.showStatus('No contract found at this address', 'error');
             } else if (error.message.includes('could not decode result data')) {
-                UIUtils.showStatus('❌ ABI incompatible avec le contrat', 'error');
+                UIUtils.showStatus('ABI mismatch', 'error');
             } else {
-                UIUtils.showStatus(`❌ Erreur de connexion: ${error.message}`, 'error');
+                UIUtils.showStatus(`Connection error: ${error.message}`, 'error');
             }
         }
     }
@@ -433,3 +489,6 @@ function mint() {
 function resetContract() {
     app.resetContract();
 }
+
+// For ES6 modules
+export { NFTApp };
