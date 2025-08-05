@@ -173,6 +173,48 @@
 				font-size: 0.9rem;
 				opacity: 0.8;
 			}
+
+			.nft-gallery {
+				margin-top: 2rem;
+				text-align: left;
+			}
+
+			.nft-gallery h4 {
+				margin-bottom: 1rem;
+				color: #ffd700;
+			}
+
+			.nft-list {
+				display: grid;
+				grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+				gap: 1rem;
+			}
+
+			.nft-card {
+				background: rgba(255, 255, 255, 0.1);
+				border-radius: 10px;
+				padding: 1rem;
+				text-align: center;
+			}
+
+			.nft-card img {
+				width: 100%;
+				height: 150px;
+				object-fit: contain;
+				border-radius: 8px;
+				background: rgba(255, 255, 255, 0.2);
+			}
+
+			.nft-card h5 {
+				margin: 0.5rem 0;
+				color: #ffd700;
+			}
+
+			.nft-card p {
+				font-size: 0.8rem;
+				opacity: 0.8;
+				margin: 0.2rem 0;
+			}
 		</style>
 	</head>
 	<body>
@@ -198,9 +240,13 @@
 
 			<!-- NFT Preview -->
 			<div class="nft-preview">
-				<div class="nft-image">🦡42</div>
+				<div class="nft-image" id="nftPreview">🦡42</div>
 				<h3>BADGER42 Collection</h3>
-				<p>Unique digital art featuring the iconic number 42</p>
+				<p>Unique digital art featuring the iconic number 42 - Stored fully on-chain!</p>
+				<div id="nftGallery" class="nft-gallery hidden">
+					<h4>Your NFTs:</h4>
+					<div id="nftList" class="nft-list"></div>
+				</div>
 			</div>
 
 			<!-- Wallet Connection -->
@@ -256,6 +302,7 @@
 				'function tokenURI(uint256 tokenId) external view returns (string memory)',
 				'function name() external view returns (string memory)',
 				'function symbol() external view returns (string memory)',
+				'function tokenOfOwnerByIndex(address owner, uint256 index) external view returns (uint256)',
 				'event NFTMinted(address indexed to, uint256 indexed tokenId, string tokenURI, string artist)',
 			];
 
@@ -378,10 +425,177 @@
 
 					document.getElementById('totalSupply').textContent = totalSupply.toString();
 					document.getElementById('userBalance').textContent = userBalance.toString();
+
+					// Load user's NFTs if they have any
+					if (userBalance > 0) {
+						await loadUserNFTs();
+					}
 				} catch (error) {
 					console.error('Stats error:', error);
 					showStatus('Failed to load contract stats', 'error');
 				}
+			}
+
+			// Load and display user's NFTs
+			async function loadUserNFTs() {
+				try {
+					const balance = await contract.balanceOf(userAddress);
+					const nftList = document.getElementById('nftList');
+					const nftGallery = document.getElementById('nftGallery');
+					
+					if (balance == 0) {
+						nftGallery.classList.add('hidden');
+						return;
+					}
+
+					nftGallery.classList.remove('hidden');
+					nftList.innerHTML = 'Loading your NFTs...';
+
+					const nfts = [];
+					
+					// Get all tokens owned by user (simple approach)
+					const totalSupply = await contract.totalSupply();
+					for (let i = 1; i <= totalSupply; i++) {
+						try {
+							const owner = await contract.ownerOf(i);
+							if (owner.toLowerCase() === userAddress.toLowerCase()) {
+								const tokenURI = await contract.tokenURI(i);
+								nfts.push({ id: i, uri: tokenURI });
+							}
+						} catch (error) {
+							// Token might not exist, continue
+						}
+					}
+
+					// Display NFTs
+					if (nfts.length === 0) {
+						nftList.innerHTML = '<p>No NFTs found</p>';
+						return;
+					}
+
+					nftList.innerHTML = '';
+					for (const nft of nfts) {
+						const nftCard = await createNFTCard(nft.id, nft.uri);
+						nftList.appendChild(nftCard);
+					}
+				} catch (error) {
+					console.error('Error loading NFTs:', error);
+					document.getElementById('nftList').innerHTML = '<p>Error loading NFTs</p>';
+				}
+			}
+
+			// Create NFT card element
+			async function createNFTCard(tokenId, tokenURI) {
+				const card = document.createElement('div');
+				card.className = 'nft-card';
+
+				try {
+					let metadata;
+					
+					console.log('Loading metadata for token', tokenId, 'URI:', tokenURI);
+					
+					// Handle data URI (on-chain metadata)
+					if (tokenURI.startsWith('data:application/json;base64,')) {
+						const base64Data = tokenURI.split(',')[1];
+						console.log('Base64 data:', base64Data);
+						
+						try {
+							const jsonData = atob(base64Data);
+							console.log('Raw decoded data length:', jsonData.length);
+							console.log('First 100 chars:', JSON.stringify(jsonData.substring(0, 100)));
+							
+							let cleanJson = '';
+							
+							// Check if the JSON starts with 'cription' (missing 'des' prefix)
+							if (jsonData.startsWith('cription')) {
+								// Reconstruct the missing part
+								cleanJson = '{"description":"' + jsonData.substring('cription":"'.length);
+								console.log('Fixed missing description prefix');
+							} else {
+								// Find the actual JSON start - look for the first '{'
+								const jsonStart = jsonData.indexOf('{');
+								if (jsonStart >= 0) {
+									cleanJson = jsonData.substring(jsonStart);
+								} else {
+									throw new Error('No JSON object found in decoded data');
+								}
+							}
+							
+							// Find the end of valid JSON by counting braces
+							let braceCount = 0;
+							let validEnd = -1;
+							
+							for (let i = 0; i < cleanJson.length; i++) {
+								const char = cleanJson[i];
+								if (char === '{') {
+									braceCount++;
+								} else if (char === '}') {
+									braceCount--;
+									if (braceCount === 0) {
+										validEnd = i;
+										break;
+									}
+								}
+							}
+							
+							if (validEnd > 0) {
+								cleanJson = cleanJson.substring(0, validEnd + 1);
+							}
+							
+							console.log('Clean JSON to parse (first 200 chars):', cleanJson.substring(0, 200));
+							metadata = JSON.parse(cleanJson);
+							console.log('Successfully parsed metadata:', metadata);
+						} catch (parseError) {
+							console.error('Error parsing base64 data:', parseError);
+							throw parseError;
+						}
+					} else if (tokenURI.startsWith('ipfs://')) {
+						// Handle IPFS URLs
+						const ipfsUrl = tokenURI.replace('ipfs://', 'https://ipfs.io/ipfs/');
+						const response = await fetch(ipfsUrl);
+						metadata = await response.json();
+					} else if (tokenURI.startsWith('http')) {
+						// Handle direct HTTP URLs
+						const response = await fetch(tokenURI);
+						metadata = await response.json();
+					} else {
+						throw new Error('Unsupported URI format');
+					}
+
+					// Handle different image data formats
+					let imageUrl = '';
+					if (metadata.image) {
+						imageUrl = metadata.image;
+					} else if (metadata.imageData) {
+						imageUrl = metadata.imageData;
+					}
+
+					// Convert IPFS image URLs if needed
+					if (imageUrl.startsWith('ipfs://')) {
+						imageUrl = imageUrl.replace('ipfs://', 'https://ipfs.io/ipfs/');
+					}
+
+					card.innerHTML = `
+						<img src="${imageUrl}" alt="${metadata.name || 'NFT'}" 
+							 onerror="this.src='data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjAwIiBoZWlnaHQ9IjIwMCIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj48cmVjdCB3aWR0aD0iMTAwJSIgaGVpZ2h0PSIxMDAlIiBmaWxsPSIjNjY3ZWVhIi8+PHRleHQgeD0iNTAlIiB5PSI1MCUiIGZvbnQtZmFtaWx5PSJBcmlhbCIgZm9udC1zaXplPSIyNCIgZmlsbD0id2hpdGUiIHRleHQtYW5jaG9yPSJtaWRkbGUiIGR5PSIuM2VtIj7wn6qhNDI8L3RleHQ+PC9zdmc+'" />
+						<h5>${metadata.name || `NFT #${tokenId}`}</h5>
+						<p><strong>Token ID:</strong> ${tokenId}</p>
+						<p><strong>Artist:</strong> ${metadata.artist || 'Unknown'}</p>
+						<p>${metadata.description ? (metadata.description.length > 60 ? metadata.description.substring(0, 60) + '...' : metadata.description) : 'No description'}</p>
+						<a href="${CONFIG.ETHERSCAN_URL}/token/${CONFIG.CONTRACT_ADDRESS}?a=${tokenId}" target="_blank" style="color: #ffd700; text-decoration: none; font-size: 0.8rem;">View on Etherscan</a>
+					`;
+				} catch (error) {
+					console.error('Error loading metadata for token', tokenId, error);
+					card.innerHTML = `
+						<div style="width: 100%; height: 150px; background: rgba(255,255,255,0.2); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 2rem;">🦡42</div>
+						<h5>NFT #${tokenId}</h5>
+						<p><strong>Token ID:</strong> ${tokenId}</p>
+						<p>Error: ${error.message}</p>
+						<a href="${CONFIG.ETHERSCAN_URL}/token/${CONFIG.CONTRACT_ADDRESS}?a=${tokenId}" target="_blank" style="color: #ffd700; text-decoration: none; font-size: 0.8rem;">View on Etherscan</a>
+					`;
+				}
+
+				return card;
 			}
 
 			// Mint NFT
