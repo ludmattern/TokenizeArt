@@ -440,71 +440,9 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
             string(
                 abi.encodePacked(
                     "data:application/json;base64,",
-                    _base64Encode(bytes(json))
+                    Base64.encode(bytes(json))
                 )
             );
-    }
-
-    /**
-     * @dev Simple base64 encoding function
-     * @param data The bytes to encode
-     * @return The base64 encoded string
-     */
-    function _base64Encode(
-        bytes memory data
-    ) internal pure returns (string memory) {
-        if (data.length == 0) return "";
-
-        string
-            memory table = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-        uint256 encodedLen = 4 * ((data.length + 2) / 3);
-        string memory result = new string(encodedLen + 32);
-
-        assembly {
-            let tablePtr := add(table, 1)
-            let dataPtr := add(data, 0x20)
-            let endPtr := add(dataPtr, mload(data))
-            let resultPtr := add(result, 0x20)
-
-            for {
-
-            } lt(dataPtr, endPtr) {
-
-            } {
-                dataPtr := add(dataPtr, 3)
-                let input := mload(dataPtr)
-
-                mstore8(
-                    resultPtr,
-                    mload(add(tablePtr, and(shr(18, input), 0x3F)))
-                )
-                resultPtr := add(resultPtr, 1)
-                mstore8(
-                    resultPtr,
-                    mload(add(tablePtr, and(shr(12, input), 0x3F)))
-                )
-                resultPtr := add(resultPtr, 1)
-                mstore8(
-                    resultPtr,
-                    mload(add(tablePtr, and(shr(6, input), 0x3F)))
-                )
-                resultPtr := add(resultPtr, 1)
-                mstore8(resultPtr, mload(add(tablePtr, and(input, 0x3F))))
-                resultPtr := add(resultPtr, 1)
-            }
-
-            switch mod(mload(data), 3)
-            case 1 {
-                mstore(sub(resultPtr, 2), shl(240, 0x3d3d))
-            }
-            case 2 {
-                mstore(sub(resultPtr, 1), shl(248, 0x3d))
-            }
-
-            mstore(result, encodedLen)
-        }
-
-        return result;
     }
 
     /**
