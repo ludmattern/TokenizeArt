@@ -1,0 +1,100 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>MATTERN42 NFT - Simple Mint</title>
+    <script src="https://cdn.jsdelivr.net/npm/ethers@6.7.1/dist/ethers.umd.min.js"></script>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="container">
+        <h1>🦡 MATTERN42 NFT</h1>
+        
+        <!-- Stats -->
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-number" id="totalSupply">-</div>
+                <div>Total</div>
+            </div>
+            <div class="stat">
+                <div class="stat-number" id="userBalance">-</div>
+                <div>Your NFTs</div>
+            </div>
+            <div class="stat" id="contractInfo" style="display: none;">
+                <div style="font-size: 0.8rem; color: #ffd700; word-break: break-all;" id="contractDisplay"></div>
+                <div>Contract</div>
+                <button onclick="app.resetContract()" style="
+                    background: transparent; 
+                    border: 1px solid rgba(255,255,255,0.3); 
+                    color: rgba(255,255,255,0.7); 
+                    border-radius: 4px; 
+                    padding: 2px 8px; 
+                    font-size: 0.7rem; 
+                    cursor: pointer; 
+                    margin-top: 5px;
+                ">Change</button>
+            </div>
+        </div>
+
+        <!-- Connect -->
+        <div id="connectSection">
+            <button class="mint-btn" onclick="app.connectWallet()">Connect Wallet</button>
+        </div>
+
+        <!-- Mint -->
+        <div id="mintSection" class="hidden">
+            <div class="mint-section">
+                <div class="mode-selection">
+                    <button class="mode-btn active" onclick="app.setMode('ipfs')">🌐 IPFS (~0.0002 ETH)</button>
+                    <button class="mode-btn" onclick="app.setMode('onchain')">💎 On-Chain (~0.3 ETH)</button>
+                </div>
+                
+                <div style="margin: 15px 0; padding: 10px; background: rgba(255,255,255,0.1); border-radius: 8px; font-size: 0.9rem;">
+                    <div id="modeInfo">
+                        🌐 <strong>IPFS Mode:</strong> Metadata with IPFS image reference - Lower cost, traditional approach
+                    </div>
+                </div>
+                
+                <input type="text" id="nftName" placeholder="NFT Name" value="BADGER42">
+                <input type="text" id="nftDescription" placeholder="Description" value="A unique NFT from the BADGER42 collection">
+                
+                <button class="mint-btn" onclick="app.mint()" id="mintBtn">🎨 Mint NFT</button>
+            </div>
+        </div>
+
+        <!-- Status -->
+        <div id="status"></div>
+
+        <!-- Gallery -->
+        <div id="gallery" class="nft-gallery"></div>
+    </div>
+
+    <script src="config.js"></script>
+    <script src="contract-abi.js"></script>
+    <script src="utils.js"></script>
+    <script src="app.js"></script>
+    <script>
+        // Initialize the app
+        let app;
+        
+        // Initialize when page loads
+        window.addEventListener('load', async () => {
+            try {
+                // Load configuration from server first
+                await loadConfig();
+                
+                // Then initialize the app
+                app = new NFTApp();
+                await app.init();
+                
+                console.log('🎨 MATTERN42 NFT App initialized successfully');
+            } catch (error) {
+                console.error('❌ Failed to initialize app:', error);
+                document.getElementById('status').innerHTML = 
+                    '<div style="color: #ff6b6b;">⚠️ Failed to initialize application. Please refresh the page.</div>';
+            }
+        });
+    </script>
+</body>
+</html>

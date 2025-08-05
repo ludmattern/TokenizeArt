@@ -39,6 +39,9 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     // Mapping from token ID to on-chain metadata
     mapping(uint256 => OnChainMetadata) private _onChainMetadata;
 
+    // Mapping from token ID to external URI (for IPFS tokens)
+    mapping(uint256 => string) private _externalTokenURIs;
+
     // Default image data (base64 encoded BADGER42.svg)
     string private _defaultImageData;
 
@@ -128,7 +131,9 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
         require(tokenId <= MAX_SUPPLY, "Maximum supply exceeded");
 
         _safeMint(to, tokenId);
-        _setTokenURI(tokenId, metadataURI);
+
+        // Store URI in our custom mapping instead of using OpenZeppelin's _setTokenURI
+        _externalTokenURIs[tokenId] = metadataURI;
         _tokenArtists[tokenId] = artist;
 
         // Mark as external URI (not on-chain)
@@ -391,12 +396,17 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable, Pausable {
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         require(_ownerOf(tokenId) != address(0), "Token does not exist");
 
+        // Check if this token has an external URI stored in our custom mapping
+        if (bytes(_externalTokenURIs[tokenId]).length > 0) {
+            return _externalTokenURIs[tokenId];
+        }
+
         // If token uses on-chain storage, generate URI dynamically
         if (_onChainMetadata[tokenId].isOnChain) {
             return _generateOnChainURI(tokenId);
         }
 
-        // Otherwise, use traditional URI storage
+        // Otherwise, use traditional URI storage (fallback, shouldn't happen)
         return super.tokenURI(tokenId);
     }
 
