@@ -47,39 +47,20 @@ async function main() {
 
 	console.log('');
 
-	// Update .env file
-	const envPath = path.join(__dirname, '../../.env');
-	
-	// Read existing .env content
-	let envContent = '';
-	try {
-		envContent = fs.readFileSync(envPath, 'utf8');
-	} catch (error) {
-		console.log('⚠️  .env file not found, creating new one');
-	}
-	
-	// Update or add TOKEN_ADDRESS line
-	const lines = envContent.split('\n');
-	let tokenAddressUpdated = false;
-	
-	for (let i = 0; i < lines.length; i++) {
-		if (lines[i].startsWith('TOKEN_ADDRESS=')) {
-			lines[i] = `TOKEN_ADDRESS=${contractAddress}`;
-			tokenAddressUpdated = true;
-			break;
-		}
-	}
-	
-	// If TOKEN_ADDRESS line not found, add it
-	if (!tokenAddressUpdated) {
-		lines.push(`TOKEN_ADDRESS=${contractAddress}`);
-	}
-	
-	// Write back to .env
-	fs.writeFileSync(envPath, lines.join('\n'));
-	console.log('📝 Updated .env file');
-
-	console.log('');
+    // Update .env file with the new contract address
+    const envPath = path.join(__dirname, '../../.env');
+    let envContent = fs.readFileSync(envPath, 'utf8');
+    
+    // Replace or add TOKEN_ADDRESS
+    if (envContent.includes('TOKEN_ADDRESS=')) {
+        envContent = envContent.replace(/TOKEN_ADDRESS=.*/, `TOKEN_ADDRESS=${mattern42.target}`);
+    } else {
+        envContent += `
+TOKEN_ADDRESS=${mattern42.target}`;
+    }
+    
+    fs.writeFileSync(envPath, envContent);
+    console.log("✅ .env file updated with contract address");	console.log('');
 	console.log('🎉 Deployment complete!');
 	console.log('🌟 Your BADGER42 image is embedded in the blockchain');
 	console.log('🌐 Visit your website to mint NFTs!');

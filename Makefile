@@ -1,7 +1,7 @@
 # MATTERN42 NFT - Professional Makefile
 # Usage: make <command>
 
-.PHONY: help install deploy start stop clean test status
+.PHONY: help install compile deploy verify etherscan-verify dev start stop clean status setup quickstart
 
 # Default target
 help:
@@ -35,36 +35,31 @@ install:
 	cd website && npm install
 	@echo "✅ All dependencies installed!"
 
+# Compile contracts
+compile:
+	@echo "⚡ Compiling smart contracts..."
+	cd deployment && npx hardhat compile
+
 # Deploy contract to Sepolia testnet
 deploy:
 	@echo "🚀 Deploying contract to Sepolia..."
 	cd deployment && npx hardhat run scripts/deploy.js --network sepolia
 
-# Verify deployed contract
+# Verify deployed contract functionality
 verify:
 	@echo "🔍 Verifying deployed contract..."
 	cd deployment && npx hardhat run scripts/verify.js --network sepolia
 
-# Verify contract on Etherscan
+# Verify contract source code on Etherscan
 etherscan-verify:
 	@echo "🔍 Verifying contract on Etherscan..."
 	cd deployment && npx hardhat run scripts/etherscan-verify.js --network sepolia
 
-# Clean build artifacts
-clean:
-	@echo "🧹 Cleaning build artifacts..."
-	cd deployment && npx hardhat clean
-	@echo "✅ Clean completed"
-
-# Show project status
-status:
-	@echo "📊 TokenizeArt Project Status"
-	@echo "=============================="
-
-# Compile contracts
-compile:
-	@echo "⚡ Compiling smart contracts..."
-	cd deployment && npx hardhat compile
+# Start development server with auto-reload
+dev:
+	@echo "🔥 Starting development server with auto-reload..."
+	@echo "📱 Open http://localhost:3000 in your browser"
+	cd website && npm run dev 2>/dev/null || nodemon server.js
 
 # Start production server
 start:
@@ -72,13 +67,13 @@ start:
 	@echo "📱 Open http://localhost:3000 in your browser"
 	cd website && node server.js
 
-# Stop all Node.js processes (be careful!)
+# Stop all Node.js servers
 stop:
 	@echo "🛑 Stopping all Node.js servers..."
 	pkill -f "node.*server.js" || echo "No servers running"
 	pkill -f "nodemon.*server.js" || echo "No dev servers running"
 
-# Clean all node_modules and build artifacts
+# Clean all build artifacts and dependencies
 clean:
 	@echo "🧹 Cleaning project..."
 	rm -rf deployment/node_modules
@@ -92,49 +87,33 @@ status:
 	@echo "📊 MATTERN42 NFT Project Status:"
 	@echo ""
 	@echo "📁 Project Structure:"
-	@ls -la | grep -E "(deployment|website|mint|code)"
+	@ls -la | grep -E "(deployment|website|mint|code|documentation)" || echo "Missing directories"
 	@echo ""
 	@echo "📋 Environment Variables:"
 	@if [ -f .env ]; then \
 		echo "✅ .env file exists"; \
-		grep -E "(TOKEN_ADDRESS|PINATA_API_KEY)" .env | sed 's/=.*/=***/' || echo "⚠️  Some variables missing"; \
+		if grep -q "TOKEN_ADDRESS=." .env; then \
+			echo "✅ Contract deployed"; \
+		else \
+			echo "⚠️  Contract not deployed yet"; \
+		fi; \
 	else \
 		echo "❌ .env file not found"; \
-	fi
-	@echo ""
-	@echo "🔗 Contract Address:"
-	@if [ -f .env ]; then \
-		grep "TOKEN_ADDRESS" .env | cut -d= -f2 || echo "❌ Not deployed yet"; \
-	else \
-		echo "❌ .env not found"; \
 	fi
 	@echo ""
 	@echo "🌐 Server Status:"
 	@pgrep -f "node.*server.js" > /dev/null && echo "✅ Server running (PID: $$(pgrep -f 'node.*server.js'))" || echo "❌ Server not running"
 
-# Show server logs (if running in background)
-logs:
-	@echo "📋 Server Logs:"
-	@if pgrep -f "node.*server.js" > /dev/null; then \
-		echo "✅ Server is running"; \
-	else \
-		echo "❌ No server running. Use 'make start' or 'make dev'"; \
-	fi
-
-# Quick development setup
-setup: install compile
+# Complete project setup
+setup: clean install compile
 	@echo ""
 	@echo "🎉 MATTERN42 NFT setup complete!"
 	@echo ""
 	@echo "Next steps:"
-	@echo "1. Configure your .env file with:"
-	@echo "   - PRIVATE_KEY (your wallet private key)"
-	@echo "   - INFURA_API_KEY (for Sepolia network)"
-	@echo "   - PINATA_API_KEY & PINATA_SECRET (for IPFS)"
-	@echo ""
-	@echo "2. Deploy contract: make deploy"
+	@echo "1. Deploy contract: make deploy"
+	@echo "2. Verify on Etherscan: make etherscan-verify"
 	@echo "3. Start server: make start"
 	@echo ""
 
-# Quick start for development
-quickstart: setup deploy start
+# Complete flow from setup to running
+quickstart: setup deploy etherscan-verify start

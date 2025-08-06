@@ -2,104 +2,129 @@
 
 This project implements an ERC-721 NFT smart contract with hybrid metadata storage capabilities, deployed on Sepolia testnet.
 
-## Contract Deployment Information
+## 🚀 Quick Start
 
-- **Contract Address**: `0x5Cfd6D03313974551379C9Ae07183741739023DB`
-- **Network**: Sepolia Testnet
-- **Etherscan**: https://sepolia.etherscan.io/address/0x5Cfd6D03313974551379C9Ae07183741739023DB
-
-## Technical Choices and Justifications
-
-### Blockchain Selection
-**Choice**: Ethereum Sepolia Testnet
-**Justification**: 
-- ERC-721 standard compliance for maximum compatibility
-- Active testnet with reliable infrastructure
-- No real monetary cost while maintaining production-like environment
-- Widespread tooling and documentation support
-
-### Smart Contract Architecture
-**Choice**: Hybrid storage system (IPFS + On-chain)
-**Justification**:
-- **IPFS Mode**: Industry standard for marketplace compatibility and cost efficiency
-- **On-chain Mode**: Future-proof solution with permanent, censorship-resistant storage
-- Flexibility allows users to choose based on their needs and budget
-
-### Development Framework
-**Choice**: Hardhat with OpenZeppelin libraries
-**Justification**:
-- Hardhat provides robust testing and deployment environment
-- OpenZeppelin contracts are audited and battle-tested
-- Modular architecture enables easy maintenance and upgrades
-
-### Image Storage Strategy
-**Choice**: SVG format with base64 encoding
-**Justification**:
-- Scalable vector graphics work at any resolution
-- Base64 encoding enables true on-chain storage
-- BADGER42 design incorporates required "42" element prominently
-- Compact file size reduces gas costs
-
-## NFT Specifications
-
-### Metadata Standards
-- **Artist Name**: "lmattern" (42 school login as required)
-- **Collection Name**: "MATTERN42 NFT Collection" (includes "42" as required)
-- **Token Naming**: Each NFT named "MATTERN42 NFT Collection #{tokenId}"
-- **Image**: BADGER42.svg featuring the number "42" displayed
-
-### Owner Verification
-The contract implements standard ERC-721 `ownerOf(uint256 tokenId)` function enabling verification of NFT ownership as required by the subject specifications.
-
-## Project Structure
-
-### Required Directories
-- `code/` - Smart contract source code (MATTERN42NFT.sol)
-- `deployment/` - Contract deployment scripts and configuration
-- `mint/` - NFT image asset (BADGER42.svg)  
-- `documentation/` - Complete project documentation
-- `website/` - Web interface for NFT minting
-
-## Quick Start
-
-### Option 1: Using Makefile
+### Complete Setup (Recommended)
 ```bash
-make help          # Show available commands
-make setup         # Install dependencies and compile contracts
-make deploy        # Deploy contract to Sepolia testnet  
+# One command to rule them all
+make quickstart
+```
+This will: install dependencies → compile contracts → deploy → verify on Etherscan → start server
+
+### Step by Step
+```bash
+# 1. Setup project
+make setup          # Install dependencies and compile
+
+# 2. Deploy contract  
+make deploy         # Deploy to Sepolia testnet
+
+# 3. Verify on Etherscan
+make etherscan-verify
+
+# 4. Start application
+make start          # Open http://localhost:3000
+```
+
+## 📋 Project Requirements Met
+
+## 📋 Project Requirements Met
+
+### ✅ Mandatory Requirements
+- **Smart Contract**: ERC-721 NFT with hybrid storage (IPFS + On-chain)  
+- **Deployment Script**: Automated deployment to Sepolia testnet
+- **Web Interface**: Professional minting interface with MetaMask integration
+- **NFT Image**: BADGER42.svg featuring the number "42" prominently
+- **Documentation**: Complete technical documentation in `documentation/`
+- **README**: Technical choices and architectural decisions explained
+
+### 🏆 Bonus Features Implemented
+- **Beautiful NFT Design**: Custom SVG artwork with "42" and badger theme
+- **Professional Web Interface**: Modern, responsive UI with dual minting modes
+- **On-Chain Metadata Storage**: Premium option for permanent blockchain storage
+- **Etherscan Verification**: Automated contract verification and publication
+
+## 💡 Technical Architecture
+
+### Smart Contract Features
+- **Hybrid Storage**: Choose between IPFS (cost-efficient) or on-chain (permanent)
+- **Owner Verification**: Standard `ownerOf()` function for ownership validation
+- **Supply Management**: Maximum 4242 NFTs with transparent tracking
+- **Security**: OpenZeppelin standards with comprehensive access controls
+
+### Web Application Features  
+- **Dual Minting Modes**: IPFS integration via Pinata + on-chain SVG storage
+- **Wallet Integration**: Seamless MetaMask connectivity and transaction handling
+- **Real-time Updates**: Live transaction status and cost estimation
+- **Responsive Design**: Works on desktop and mobile devices
+
+## 🛠️ Development Commands
+
+```bash
+# Project management
+make help          # Show all available commands
+make status        # Check project status and deployment info
+make clean         # Clean all build artifacts and dependencies
+
+# Development workflow
+make setup         # Complete initial setup (install + compile)
+make compile       # Compile smart contracts only
+make deploy        # Deploy contract to Sepolia testnet
+make verify        # Test deployed contract functionality
+make etherscan-verify # Verify contract source code on Etherscan
+
+# Server management
+make start         # Start production server
 make dev           # Start development server with auto-reload
+make stop          # Stop all running servers
 ```
 
-### Option 2: Manual Commands
-```bash
-# Deploy contract
-cd deployment
-npx hardhat run scripts/deploy.js --network sepolia
+## 📐 Technical Justifications
 
-# Start web application  
-cd website
-npm install
-node server.js
+### Blockchain Selection: Ethereum Sepolia
+- **ERC-721 Standard**: Maximum compatibility with NFT marketplaces
+- **Active Testnet**: Reliable infrastructure without real monetary cost
+- **Production-Like**: Maintains mainnet behavior for accurate testing
+- **Tooling Support**: Extensive documentation and development tools
+
+### Smart Contract Architecture: Hybrid Storage
+- **IPFS Integration**: Industry standard for cost-effective metadata storage
+- **On-Chain Option**: Permanent, censorship-resistant storage for premium use
+- **Flexibility**: Users choose storage method based on needs and budget
+- **Future-Proof**: Multiple storage options ensure long-term accessibility
+
+### Development Framework: Hardhat + OpenZeppelin
+- **Security First**: Battle-tested, audited contract libraries
+- **Development Experience**: Robust testing, debugging, and deployment tools
+- **Modular Design**: Easy maintenance and upgrade paths
+- **Industry Standard**: Widely adopted by professional teams
+
+### Image Strategy: SVG with Base64 Encoding
+- **Scalability**: Vector graphics work at any resolution
+- **On-Chain Storage**: True blockchain permanence through base64 encoding
+- **Gas Efficiency**: Compact file size reduces transaction costs
+- **Design Compliance**: BADGER42 prominently features required "42"
+
+## 📂 Project Structure
+
 ```
-
-## Development Features
-
-### Smart Contract Capabilities
-- Hybrid metadata storage (IPFS + On-chain)
-- Owner verification via ownerOf() function
-- Supply limit enforcement (4242 maximum)
-- Professional access control and security
-
-### Web Interface Features
-- **IPFS Mode**: Cost-efficient minting with Pinata integration
-- **On-Chain Mode**: Permanent blockchain storage with embedded images
-- MetaMask integration for wallet connectivity
-- Real-time transaction status and cost estimation
-
-## Security and Compliance
-
-- ERC-721 standard compliance
-- OpenZeppelin security patterns
-- Owner-only minting controls  
-- Comprehensive input validation
-- Testnet deployment for safe development
+TokenizeArt/
+├── code/                    # Smart contract source
+│   └── MATTERN42NFT.sol    # Main ERC-721 contract
+├── deployment/             # Contract deployment
+│   ├── scripts/
+│   │   ├── deploy.js       # Deployment script
+│   │   ├── verify.js       # Contract testing
+│   │   └── etherscan-verify.js # Etherscan verification
+│   └── hardhat.config.js   # Hardhat configuration
+├── website/                # Web application
+│   ├── mint.html          # Main interface
+│   ├── app.js             # NFT minting logic
+│   ├── server.js          # Express server
+│   └── utils.js           # IPFS & utility functions
+├── mint/                   # NFT assets
+│   └── BADGER42.svg       # NFT artwork (with "42")
+├── documentation/          # Project documentation
+│   └── README.md          # Technical specifications
+└── README.md              # Main project documentation
+```
