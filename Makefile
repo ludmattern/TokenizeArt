@@ -1,7 +1,7 @@
 # MATTERN42 NFT - Professional Makefile
 # Usage: make <command>
 
-.PHONY: help install compile deploy verify etherscan-verify dev start stop clean status setup quickstart
+.PHONY: help install compile deploy verify dev start stop clean status setup quickstart
 
 # Default target
 help:
@@ -12,8 +12,7 @@ help:
 	@echo "  setup     - Install dependencies and compile contracts"
 	@echo "  compile   - Compile smart contracts"
 	@echo "  deploy    - Deploy contract to Sepolia testnet"
-	@echo "  verify    - Verify deployed contract functionality"
-	@echo "  etherscan-verify - Verify contract source code on Etherscan"
+	@echo "  verify    - Verify contract source code on Etherscan"
 	@echo "  dev       - Start development server with auto-reload"
 	@echo "  start     - Start production server"
 	@echo "  stop      - Stop all running servers"
@@ -45,15 +44,10 @@ deploy:
 	@echo "🚀 Deploying contract to Sepolia..."
 	cd deployment && npx hardhat run scripts/deploy.js --network sepolia
 
-# Verify deployed contract functionality
-verify:
-	@echo "🔍 Verifying deployed contract..."
-	cd deployment && npx hardhat run scripts/verify.js --network sepolia
-
 # Verify contract source code on Etherscan
-etherscan-verify:
+verify:
 	@echo "🔍 Verifying contract on Etherscan..."
-	cd deployment && npx hardhat run scripts/etherscan-verify.js --network sepolia
+	cd deployment && npx hardhat run scripts/verify.js --network sepolia
 
 # Start development server with auto-reload
 dev:

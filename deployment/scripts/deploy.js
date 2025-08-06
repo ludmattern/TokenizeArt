@@ -53,10 +53,9 @@ async function main() {
     
     // Replace or add TOKEN_ADDRESS
     if (envContent.includes('TOKEN_ADDRESS=')) {
-        envContent = envContent.replace(/TOKEN_ADDRESS=.*/, `TOKEN_ADDRESS=${mattern42.target}`);
+        envContent = envContent.replace(/TOKEN_ADDRESS=.*/, `TOKEN_ADDRESS=${contractAddress}`);
     } else {
-        envContent += `
-TOKEN_ADDRESS=${mattern42.target}`;
+        envContent += `\nTOKEN_ADDRESS=${contractAddress}`;
     }
     
     fs.writeFileSync(envPath, envContent);

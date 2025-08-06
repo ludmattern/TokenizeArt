@@ -2,32 +2,41 @@ const { ethers, run } = require("hardhat");
 require('dotenv').config({ path: '../../.env' });
 
 async function main() {
-    console.log("🔍 Verifying contract on Etherscan...\n");
+    console.log("Verifying contract on Etherscan...\n");
 
     const contractAddress = process.env.TOKEN_ADDRESS;
     const etherscanApiKey = process.env.ETHERSCAN_API_KEY;
     
     if (!contractAddress) {
-        console.error("❌ TOKEN_ADDRESS not found in .env file");
+        console.error("TOKEN_ADDRESS not found in .env file");
         process.exit(1);
     }
     
     if (!etherscanApiKey) {
-        console.error("❌ ETHERSCAN_API_KEY not found in .env file");
+        console.error("ETHERSCAN_API_KEY not found in .env file");
         console.error("Please add your Etherscan API key to verify the contract");
         process.exit(1);
     }
 
-    console.log(`📋 Contract Address: ${contractAddress}`);
-    console.log(`🔑 Using Etherscan API Key: ${etherscanApiKey.substring(0, 8)}...`);
+    console.log(`Contract Address: ${contractAddress}`);
+    console.log(`Using Etherscan API Key: ${etherscanApiKey.substring(0, 8)}...`);
     
     try {
-        console.log("\n⏳ Submitting contract for verification...");
+        console.log("\nSubmitting contract for verification...");
+        
+        // Constructor arguments must match deployment parameters
+        const constructorArguments = [
+            'MATTERN42 NFT Collection',  // NFT_NAME
+            'M42NFT',                    // NFT_SYMBOL  
+            'https://ipfs.io/ipfs/'      // BASE_URI
+        ];
+        
+        console.log("Constructor arguments:", constructorArguments);
         
         // Verify the contract on Etherscan
         await run("verify:verify", {
             address: contractAddress,
-            constructorArguments: [], // MATTERN42NFT constructor has no arguments
+            constructorArguments: constructorArguments,
             contract: "contracts/MATTERN42NFT.sol:MATTERN42NFT"
         });
         
