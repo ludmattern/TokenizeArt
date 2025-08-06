@@ -9,8 +9,7 @@ import "@openzeppelin/contracts/utils/Base64.sol";
 
 /**
  * @title MATTERN42NFT
- * @dev ERC721 NFT with on-chain metadata and image storage (NFT Inscriptions)
- * @dev Includes minting, URI management, and fully on-chain storage
+ * @dev ERC721 NFT with on-chain metadata and image storage
  * @author lmattern (MATTERN42 Team)
  */
 contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
@@ -49,15 +48,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
         _defaultImageData = "data:image/svg+xml;base64,";
     }
 
-    /**
-     * @dev Mint a new NFT with on-chain metadata and image
-     * @param to Address to mint the NFT to
-     * @param name Name of the NFT
-     * @param description Description of the NFT
-     * @param artist Name of the artist (should be login for 42 project)
-     * @param imageData Base64 encoded image data (optional, uses default if empty)
-     * @param attributes JSON encoded attributes (optional)
-     */
+    // Mint NFT with on-chain metadata
     function mintOnChain(
         address to,
         string memory name,
@@ -90,12 +81,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
         emit NFTMinted(to, tokenId, onChainURI, artist);
     }
 
-    /**
-     * @dev Mint a new NFT to the specified address (traditional way with external URI)
-     * @param to Address to mint the NFT to
-     * @param metadataURI URI pointing to the NFT metadata
-     * @param artist Name of the artist (should be login for 42 project)
-     */
+    // Mint NFT with external URI
     function mint(
         address to,
         string memory metadataURI,
@@ -116,57 +102,41 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
         emit NFTMinted(to, tokenId, metadataURI, artist);
     }
 
-    /**
-     * @dev Set the default image data for new tokens
-     * @param imageData Base64 encoded image data
-     */
+    // Set default image for new tokens
     function setDefaultImageData(string memory imageData) external onlyOwner {
         _defaultImageData = imageData;
         emit DefaultImageDataUpdated(imageData);
     }
 
-    /**
-     * @dev Get the total number of tokens minted
-     * @return The total supply of minted tokens
-     */
     function totalSupply() external view returns (uint256) {
         return _nextTokenId - 1;
     }
 
-    /**
-     * @dev Get the base URI for token metadata
-     */
     function _baseURI() internal view override returns (string memory) {
         return _baseTokenURI;
     }
 
-    /**
-     * @dev Override required by Solidity for ERC721URIStorage
-     */
+    // Override tokenURI to handle both on-chain and external URIs
     function tokenURI(
         uint256 tokenId
     ) public view override(ERC721, ERC721URIStorage) returns (string memory) {
         require(_ownerOf(tokenId) != address(0), "Token does not exist");
 
-        // Check if this token has an external URI stored in our custom mapping
+        // External URI takes priority
         if (bytes(_externalTokenURIs[tokenId]).length > 0) {
             return _externalTokenURIs[tokenId];
         }
 
-        // If token uses on-chain storage, generate URI dynamically
+        // Generate on-chain URI if token is on-chain
         if (_onChainMetadata[tokenId].isOnChain) {
             return _generateOnChainURI(tokenId);
         }
 
-        // Otherwise, use traditional URI storage (fallback, shouldn't happen)
+        // Fallback to parent implementation
         return super.tokenURI(tokenId);
     }
 
-    /**
-     * @dev Generate on-chain URI for a token with data: scheme
-     * @param tokenId The token ID
-     * @return The generated URI with embedded JSON metadata
-     */
+    // Generate on-chain data URI
     function _generateOnChainURI(
         uint256 tokenId
     ) internal view returns (string memory) {
@@ -197,7 +167,7 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
 
         json = string(abi.encodePacked(json, "}"));
 
-        // Encode JSON as base64 and return data URI
+        // Return base64 encoded data URI
         return
             string(
                 abi.encodePacked(
@@ -207,9 +177,6 @@ contract MATTERN42NFT is ERC721, ERC721URIStorage, Ownable {
             );
     }
 
-    /**
-     * @dev See {IERC165-supportsInterface}.
-     */
     function supportsInterface(
         bytes4 interfaceId
     ) public view override(ERC721, ERC721URIStorage) returns (bool) {
