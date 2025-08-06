@@ -48,7 +48,7 @@ MATTERN42NFT is an ERC-721 compliant NFT smart contract deployed on the Sepolia 
 To verify NFT ownership and metadata:
 1. Use `ownerOf(tokenId)` function to check ownership
 2. Use `tokenURI(tokenId)` function to retrieve metadata
-3. View on Etherscan: `https://sepolia.etherscan.io/address/youraddress`
+3. View on Etherscan: `https://sepolia.etherscan.io/address/address`
 
 ## Technical Architecture
 
