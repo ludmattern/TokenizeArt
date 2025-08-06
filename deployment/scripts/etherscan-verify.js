@@ -31,19 +31,19 @@ async function main() {
             contract: "contracts/MATTERN42NFT.sol:MATTERN42NFT"
         });
         
-        console.log("✅ Contract verified successfully on Etherscan!");
-        console.log(`🔗 View verified contract: https://sepolia.etherscan.io/address/${contractAddress}#code`);
+        console.log("Contract verified successfully on Etherscan!");
+        console.log(`View verified contract: https://sepolia.etherscan.io/address/${contractAddress}#code`);
         
     } catch (error) {
         if (error.message.includes("Already Verified")) {
-            console.log("✅ Contract is already verified on Etherscan!");
-            console.log(`🔗 View verified contract: https://sepolia.etherscan.io/address/${contractAddress}#code`);
+            console.log("Contract is already verified on Etherscan!");
+            console.log(`View verified contract: https://sepolia.etherscan.io/address/${contractAddress}#code`);
         } else {
-            console.error("❌ Verification failed:");
+            console.error("Verification failed:");
             console.error(error.message);
             
             // Common solutions
-            console.log("\n💡 Possible solutions:");
+            console.log("\nPossible solutions:");
             console.log("1. Wait a few minutes after deployment before verifying");
             console.log("2. Make sure your Etherscan API key is valid");
             console.log("3. Check that the contract address is correct");

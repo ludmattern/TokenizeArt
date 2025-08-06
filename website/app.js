@@ -152,7 +152,7 @@ class NFTApp {
         const address = addressInput.value.trim();
         
         if (!address) {
-            UIUtils.showStatus('', 'error');
+            UIUtils.showStatus('The contract address is required', 'error');
             return;
         }
         
