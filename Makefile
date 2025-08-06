@@ -5,37 +5,61 @@
 
 # Default target
 help:
-	@echo "🦡 MATTERN42 NFT - Available Commands:"
+	@echo "🎨 TokenizeArt - MATTERN42 NFT Collection"
+	@echo "========================================"
+	@echo "Available commands:"
 	@echo ""
-	@echo "📦 Setup & Installation:"
-	@echo "  make install     - Install all dependencies"
-	@echo "  make clean       - Clean node_modules and artifacts"
+	@echo "  setup     - Install dependencies and compile contracts"
+	@echo "  compile   - Compile smart contracts"
+	@echo "  deploy    - Deploy contract to Sepolia testnet"
+	@echo "  verify    - Verify deployed contract functionality"
+	@echo "  etherscan-verify - Verify contract source code on Etherscan"
+	@echo "  dev       - Start development server with auto-reload"
+	@echo "  start     - Start production server"
+	@echo "  stop      - Stop all running servers"
+	@echo "  clean     - Clean build artifacts"
+	@echo "  status    - Show project overview"
+	@echo "  install   - Install all dependencies"
 	@echo ""
-	@echo "🚀 Smart Contract:"
-	@echo "  make deploy      - Deploy contract to Sepolia testnet"
-	@echo "  make compile     - Compile smart contracts"
-	@echo ""
-	@echo "🌐 Web Application:"
-	@echo "  make start       - Start production server"
-	@echo "  make stop        - Stop all running servers"
-	@echo ""
-	@echo "📊 Utilities:"
-	@echo "  make status      - Show project status"
-	@echo "  make logs        - Show server logs"
+	@echo "Quick commands:"
+	@echo "  quickstart - Complete setup: install → compile → deploy → start"
 	@echo ""
 
 # Install all dependencies
 install:
 	@echo "📦 Installing deployment dependencies..."
 	cd deployment && npm install
+	@echo "📦 Installing Etherscan verification plugin..."
+	cd deployment && npm install --save-dev @nomicfoundation/hardhat-verify
 	@echo "📦 Installing website dependencies..."
 	cd website && npm install
 	@echo "✅ All dependencies installed!"
 
-# Deploy smart contract
+# Deploy contract to Sepolia testnet
 deploy:
-	@echo "🚀 Deploying MATTERN42 NFT contract to Sepolia..."
+	@echo "🚀 Deploying contract to Sepolia..."
 	cd deployment && npx hardhat run scripts/deploy.js --network sepolia
+
+# Verify deployed contract
+verify:
+	@echo "🔍 Verifying deployed contract..."
+	cd deployment && npx hardhat run scripts/verify.js --network sepolia
+
+# Verify contract on Etherscan
+etherscan-verify:
+	@echo "🔍 Verifying contract on Etherscan..."
+	cd deployment && npx hardhat run scripts/etherscan-verify.js --network sepolia
+
+# Clean build artifacts
+clean:
+	@echo "🧹 Cleaning build artifacts..."
+	cd deployment && npx hardhat clean
+	@echo "✅ Clean completed"
+
+# Show project status
+status:
+	@echo "📊 TokenizeArt Project Status"
+	@echo "=============================="
 
 # Compile contracts
 compile:

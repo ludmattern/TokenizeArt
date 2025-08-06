@@ -1,26 +1,73 @@
 # TokenizeArt - MATTERN42 NFT Collection
 
-**Professional NFT minting platform** with web interface supporting both IPFS and on-chain metadata storage.
+This project implements an ERC-721 NFT smart contract with hybrid metadata storage capabilities, deployed on Sepolia testnet.
 
-## 🚀 Quick Start
+## Contract Deployment Information
 
-### Option 1: Using Makefile (Recommended)
+- **Contract Address**: `0x5Cfd6D03313974551379C9Ae07183741739023DB`
+- **Network**: Sepolia Testnet
+- **Etherscan**: https://sepolia.etherscan.io/address/0x5Cfd6D03313974551379C9Ae07183741739023DB
+
+## Technical Choices and Justifications
+
+### Blockchain Selection
+**Choice**: Ethereum Sepolia Testnet
+**Justification**: 
+- ERC-721 standard compliance for maximum compatibility
+- Active testnet with reliable infrastructure
+- No real monetary cost while maintaining production-like environment
+- Widespread tooling and documentation support
+
+### Smart Contract Architecture
+**Choice**: Hybrid storage system (IPFS + On-chain)
+**Justification**:
+- **IPFS Mode**: Industry standard for marketplace compatibility and cost efficiency
+- **On-chain Mode**: Future-proof solution with permanent, censorship-resistant storage
+- Flexibility allows users to choose based on their needs and budget
+
+### Development Framework
+**Choice**: Hardhat with OpenZeppelin libraries
+**Justification**:
+- Hardhat provides robust testing and deployment environment
+- OpenZeppelin contracts are audited and battle-tested
+- Modular architecture enables easy maintenance and upgrades
+
+### Image Storage Strategy
+**Choice**: SVG format with base64 encoding
+**Justification**:
+- Scalable vector graphics work at any resolution
+- Base64 encoding enables true on-chain storage
+- BADGER42 design incorporates required "42" element prominently
+- Compact file size reduces gas costs
+
+## NFT Specifications
+
+### Metadata Standards
+- **Artist Name**: "lmattern" (42 school login as required)
+- **Collection Name**: "MATTERN42 NFT Collection" (includes "42" as required)
+- **Token Naming**: Each NFT named "MATTERN42 NFT Collection #{tokenId}"
+- **Image**: BADGER42.svg featuring the number "42" displayed
+
+### Owner Verification
+The contract implements standard ERC-721 `ownerOf(uint256 tokenId)` function enabling verification of NFT ownership as required by the subject specifications.
+
+## Project Structure
+
+### Required Directories
+- `code/` - Smart contract source code (MATTERN42NFT.sol)
+- `deployment/` - Contract deployment scripts and configuration
+- `mint/` - NFT image asset (BADGER42.svg)  
+- `documentation/` - Complete project documentation
+- `website/` - Web interface for NFT minting
+
+## Quick Start
+
+### Option 1: Using Makefile
 ```bash
-# Show all available commands
-make help
-
-# First time setup
-make setup          # Install deps + compile contracts
-
-# Deploy contract (once)
-make deploy
-
-# Start development server
-make dev            # With auto-reload
-# OR
-make start          # Production mode
-
-# Open http://localhost:3000 and mint! 🎨
+make help          # Show available commands
+make setup         # Install dependencies and compile contracts
+make deploy        # Deploy contract to Sepolia testnet  
+make dev           # Start development server with auto-reload
 ```
 
 ### Option 2: Manual Commands
@@ -29,76 +76,30 @@ make start          # Production mode
 cd deployment
 npx hardhat run scripts/deploy.js --network sepolia
 
-# Start web application
+# Start web application  
 cd website
 npm install
 node server.js
 ```
 
-### Quick Development
-```bash
-make quickstart     # Does everything: setup → deploy → start
-```
+## Development Features
 
-## 📁 Structure
+### Smart Contract Capabilities
+- Hybrid metadata storage (IPFS + On-chain)
+- Owner verification via ownerOf() function
+- Supply limit enforcement (4242 maximum)
+- Professional access control and security
 
-### Smart Contract
-- `code/MATTERN42NFT.sol` - Hybrid NFT contract (IPFS + On-chain)
-- `deployment/scripts/deploy.js` - Deploy contract to blockchain
+### Web Interface Features
+- **IPFS Mode**: Cost-efficient minting with Pinata integration
+- **On-Chain Mode**: Permanent blockchain storage with embedded images
+- MetaMask integration for wallet connectivity
+- Real-time transaction status and cost estimation
 
-### Web Application
-- `website/server.js` - Express server with environment config
-- `website/app.js` - Main NFT application (class-based)
-- `website/config.js` - Configuration management
-- `website/contract-abi.js` - Contract interface definitions
-- `website/utils.js` - Utility classes (IPFS, Metadata, UI)
-- `website/mint.html` - Professional web interface
-- `website/style.css` - Modern UI styling
+## Security and Compliance
 
-### Assets
-- `mint/BADGER42.svg` - NFT image (embedded in contract)
-- `.env` - Environment variables (contract address, API keys)
-- `Makefile` - Professional automation commands
-
-## 🛠️ Development Commands
-
-```bash
-# Project status and info
-make status         # Show project overview
-make logs          # View server logs
-
-# Development workflow  
-make dev           # Start with auto-reload
-make stop          # Stop all servers
-make clean         # Clean build artifacts
-
-# Smart contract operations
-make compile       # Compile contracts
-make test          # Run contract tests
-make deploy        # Deploy to Sepolia
-
-# Dependencies management
-make install       # Install all dependencies
-```
-
-## 🎯 Features
-
-### IPFS Mode 🌐 (Standard)
-- **IPFS storage** via Pinata API - Industry standard
-- **Marketplace compatible** - Works with OpenSea, Rarible, etc.
-- **Cost efficient** - ~0.0002 ETH per mint
-- **Fast transactions** - Metadata uploaded to IPFS
-
-### On-Chain Mode � (Premium)
-- **100% on-chain** - Everything stored on blockchain
-- **Permanent storage** - No external dependencies
-- **Future-proof** - Cannot be lost or censored
-- **Higher cost** - ~0.3 ETH per mint (full blockchain storage)
-- **SVG images** - Scalable vector graphics
-- **Future-proof** - Will work forever
-
-Both modes include:
-- Artist name: "lmattern" 
-- NFT names with "42"
-- Platform compatibility (Gemcase, OpenSea, etc.)
-- Owner verification via `ownerOf()`
+- ERC-721 standard compliance
+- OpenZeppelin security patterns
+- Owner-only minting controls  
+- Comprehensive input validation
+- Testnet deployment for safe development
